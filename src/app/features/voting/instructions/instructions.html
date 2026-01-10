@@ -1,0 +1,116 @@
+<div class="instructions-page">
+    <!-- Header con tiempo límite -->
+    <div class="instructions-header">
+        <div class="header-left">
+            <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>Instrucciones de Votación</span>
+        </div>
+        <div class="time-badge">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Tiempo límite: 5 minutos
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="instructions-container">
+        <div class="instructions-card">
+            <h1 class="instructions-title">Instrucciones de Votación</h1>
+            <p class="instructions-subtitle">Lea cuidadosamente antes de continuar</p>
+
+            <!-- Alerta importante -->
+            <div class="alert-box">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p>Es obligatorio leer todas las instrucciones antes de proceder a votar. Su comprensión garantiza la
+                    validez de su voto.</p>
+            </div>
+
+            <!-- Instrucción 1 -->
+            <div class="instruction-item">
+                <div class="instruction-number">1</div>
+                <div class="instruction-content">
+                    <h3>Proceso de Selección</h3>
+                    <p>En la siguiente pantalla verá la lista de candidatos disponibles. Cada candidato tendrá su
+                        fotografía, nombre completo y número de lista.</p>
+                    <p class="instruction-highlight">Solo puede seleccionar UNA opción.</p>
+                </div>
+            </div>
+
+            <!-- Instrucción 2 -->
+            <div class="instruction-item">
+                <div class="instruction-number">2</div>
+                <div class="instruction-content">
+                    <h3>Tiempo Límite</h3>
+                    <p>Dispondrá de <strong class="text-primary">5 minutos</strong> para completar su votación desde que
+                        ingrese a la pantalla de votación.</p>
+                    <ul>
+                        <li>Un cronómetro visible mostrará el tiempo restante</li>
+                        <li>Si el tiempo expira, su sesión se cerrará automáticamente y se guardará su voto con la
+                            última opción elegida</li>
+                        <li>Si al finalizar el tiempo no ha elegido un opción, su voto se guardara como blanco</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Instrucción 3 -->
+            <div class="instruction-item">
+                <div class="instruction-number">3</div>
+                <div class="instruction-content">
+                    <h3>Confirmación del Voto</h3>
+                    <p>Después de seleccionar su candidato, se le mostrará una pantalla de confirmación.</p>
+                    <ul>
+                        <li>Revise cuidadosamente su selección</li>
+                        <li>Puede cambiar su elección antes de confirmar</li>
+                        <li>Una vez confirmado, <strong class="text-warning">el voto es DEFINITIVO</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Instrucción 4 -->
+            <div class="instruction-item">
+                <div class="instruction-number">4</div>
+                <div class="instruction-content">
+                    <h3>Registro y Seguridad</h3>
+                    <p>Su voto será registrado de forma segura y anónima:</p>
+                    <ul>
+                        <li>El sistema no asocia su identidad con su elección</li>
+                        <li>Solo se registra que usted ya ejerció su derecho al voto</li>
+                        <li>No podrá votar nuevamente una vez completado el proceso</li>
+                        <li>Recibirá un comprobante de votación al finalizar</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Checkbox de confirmación -->
+            <div class="confirmation-box">
+                <label class="checkbox-container">
+                    <input type="checkbox" [(ngModel)]="hasReadInstructions">
+                    <span class="checkmark"></span>
+                    <span class="checkbox-text">
+                        He leído y comprendido todas las instrucciones del proceso de votación. Acepto que mi voto será
+                        definitivo una vez confirmado y que no podré realizar cambios posteriores.
+                    </span>
+                </label>
+            </div>
+
+            <!-- Botón continuar -->
+            <div class="action-buttons">
+                <button class="btn btn-primary btn-lg" [disabled]="!hasReadInstructions" (click)="continueToVoting()">
+                    Continuar a Votación
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

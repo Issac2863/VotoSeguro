@@ -1,0 +1,98 @@
+<div class="ballot-page">
+    <!-- Header con cronómetro -->
+    <div class="ballot-header">
+        <div class="header-left">
+            <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>SEVOTEC - Votación en Curso</span>
+        </div>
+        <div class="timer-badge" [class.warning]="timeRemaining <= 60" [class.danger]="timeRemaining <= 30">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{ formatTime(timeRemaining) }}
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="ballot-container">
+        <!-- Info de elección -->
+        <div class="election-info">
+            <h1 class="election-title">{{ electionTitle }}</h1>
+            <p class="election-description">Seleccione una opción para emitir su voto</p>
+        </div>
+
+        <!-- Candidatos/Opciones -->
+        <div class="candidates-grid">
+            <div class="candidate-card" *ngFor="let candidate of candidates; let i = index"
+                [class.selected]="selectedCandidate === i" (click)="selectCandidate(i)">
+
+                <div class="candidate-photo">
+                    <img [src]="candidate.photo" [alt]="candidate.name">
+                </div>
+
+                <div class="candidate-info">
+                    <span class="candidate-number">Lista {{ candidate.number }}</span>
+                    <h3 class="candidate-name">{{ candidate.name }}</h3>
+                    <p class="candidate-party">{{ candidate.party }}</p>
+                </div>
+
+                <div class="selection-indicator">
+                    <svg *ngIf="selectedCandidate === i" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Opción Voto en Blanco -->
+            <div class="candidate-card blank-vote" [class.selected]="selectedCandidate === -1"
+                (click)="selectCandidate(-1)">
+
+                <div class="candidate-photo blank">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+
+                <div class="candidate-info">
+                    <span class="candidate-number">Opción</span>
+                    <h3 class="candidate-name">Voto en Blanco</h3>
+                    <p class="candidate-party">Sin preferencia</p>
+                </div>
+
+                <div class="selection-indicator">
+                    <svg *ngIf="selectedCandidate === -1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timestamps y acciones -->
+        <div class="ballot-footer">
+            <div class="timestamps">
+                <div class="timestamp-item">
+                    <span class="timestamp-label">Inicio de votación:</span>
+                    <span class="timestamp-value">{{ votingStartTime | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                </div>
+                <div class="timestamp-item" *ngIf="votingEndTime">
+                    <span class="timestamp-label">Fin de votación:</span>
+                    <span class="timestamp-value">{{ votingEndTime | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary btn-lg" [disabled]="selectedCandidate === null" (click)="confirmVote()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Confirmar Voto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
