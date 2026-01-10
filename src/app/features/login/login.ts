@@ -1,52 +1,63 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class LoginComponent {
-  loginForm: FormGroup;
-  isLoading = false;
-  error = '';
+  currentStep = 1;
+  codeSent = false;
+  verificationCode = '';
+
+  // Correo parcialmente oculto (simulado - en producción vendría del backend)
+  maskedEmail = 'miba**********@outlook.com';
+
+  stepLabels = [
+    'Verificación de credenciales',
+    'Verificación facial',
+    'Verificación de identidad'
+  ];
+
+  credentialsForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
     private router: Router
   ) {
-    this.loginForm = this.fb.group({
-      cedula: ['', [Validators.required, Validators.minLength(10), Validators.pattern('^[0-9]*$')]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+    this.credentialsForm = this.fb.group({
+      documentType: ['cedula'],
+      documentNumber: [''],
+      fingerprintCode: ['']
     });
   }
 
-  onSubmit(): void {
-    if (this.loginForm.valid) {
-      this.isLoading = true;
-      this.error = '';
-
-      // Simulación de login - Conectar con backend real posteriormente
-      const { cedula, password } = this.loginForm.value;
-
-      // TODO: Implementar llamada real al AuthService
-      setTimeout(() => {
-        // Por ahora simulamos éxito si la cédula es válida
-        localStorage.setItem('token', 'fake-jwt-token');
-        this.router.navigate(['/admin-dashboard']); // Redirigir al dashboard o donde corresponda
-        this.isLoading = false;
-      }, 1500);
-    } else {
-      this.loginForm.markAllAsTouched();
+  nextStep(): void {
+    if (this.currentStep < 3) {
+      this.currentStep++;
     }
   }
 
-  // Getters para fácil acceso en el template
-  get f() { return this.loginForm.controls; }
+  previousStep(): void {
+    if (this.codeSent && this.currentStep === 3) {
+      this.codeSent = false;
+    } else if (this.currentStep > 1) {
+      this.currentStep--;
+    }
+  }
+
+  sendCode(): void {
+    // Simular envío de código
+    this.codeSent = true;
+  }
+
+  verifyAndLogin(): void {
+    // Navegación a las instrucciones de votación
+    this.router.navigate(['/voting/instructions']);
+  }
 }
