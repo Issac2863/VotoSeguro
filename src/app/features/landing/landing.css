@@ -1,0 +1,267 @@
+/* Estilos específicos para index.html - Colores de Ecuador */
+/* Estilos específicos para index.html - Colores de Ecuador */
+
+.hero-modern {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    background: var(--ecuador-blue) url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop&crop=center') center/cover;
+    background-blend-mode: overlay;
+    color: white;
+    overflow: hidden;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    animation: fadeInUp 1s ease-out;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.floating-elements::before,
+.floating-elements::after {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 209, 0, 0.2);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-elements::before {
+    top: 10%;
+    right: 10%;
+    animation-delay: 0s;
+}
+
+.floating-elements::after {
+    bottom: 10%;
+    left: 10%;
+    animation-delay: 3s;
+}
+
+.cne-logo {
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    padding: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.hero-title {
+    background: linear-gradient(45deg, #FFD100, #ffffff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.feature-card-modern {
+    position: relative;
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 114, 206, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border-top: 4px solid var(--ecuador-blue);
+}
+
+.feature-card-modern:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 30px 60px rgba(0, 114, 206, 0.2);
+}
+
+.feature-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(45deg, var(--ecuador-light-blue), #f0f9ff);
+    border-radius: 15px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.feature-card-modern:hover .feature-image img {
+    transform: scale(1.05);
+}
+
+.process-step-modern {
+    text-align: center;
+    position: relative;
+    padding: 2rem;
+}
+
+.step-image {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, var(--ecuador-blue) 0%, var(--ecuador-red) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.step-number {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.ecuador-section {
+    background: linear-gradient(135deg, var(--ecuador-blue) 0%, var(--ecuador-red) 100%);
+    color: white;
+    padding: 6rem 0;
+}
+
+.ecuador-feature-1 {
+    background: linear-gradient(135deg, var(--ecuador-blue) 0%, var(--ecuador-dark-blue) 100%);
+}
+
+.ecuador-feature-2 {
+    background: linear-gradient(135deg, var(--ecuador-yellow) 0%, #E6C200 100%);
+    color: var(--ecuador-dark-blue);
+}
+
+.ecuador-feature-3 {
+    background: linear-gradient(135deg, var(--ecuador-red) 0%, #A50E20 100%);
+}
+
+.testimonial-section {
+    background: var(--ecuador-light-blue);
+    padding: 6rem 0;
+}
+
+.testimonial-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 114, 206, 0.1);
+    text-align: center;
+    margin: 1rem;
+    border-bottom: 3px solid var(--ecuador-yellow);
+}
+
+.testimonial-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    background: linear-gradient(45deg, var(--ecuador-blue), var(--ecuador-red));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, var(--ecuador-blue) 0%, var(--ecuador-red) 100%);
+    border-radius: 25px;
+    color: white;
+}
+
+.cta-button {
+    background: var(--ecuador-yellow);
+    color: var(--ecuador-dark-blue);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+    background: #E6C200;
+    transform: scale(1.05);
+}
+
+.ecuador-tag {
+    background: var(--ecuador-yellow);
+    color: var(--ecuador-dark-blue);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.security-tag {
+    background: var(--ecuador-light-blue);
+    color: var(--ecuador-blue);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+}
+
+.innovation-tag {
+    background: rgba(255, 209, 0, 0.2);
+    color: var(--ecuador-dark-blue);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+}
+
+.transparency-tag {
+    background: rgba(206, 17, 38, 0.1);
+    color: var(--ecuador-red);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+}

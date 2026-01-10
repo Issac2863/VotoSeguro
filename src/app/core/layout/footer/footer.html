@@ -1,0 +1,63 @@
+<footer style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 3rem 0;">
+    <div class="container">
+        <div class="grid" style="grid-template-columns: 2fr 1fr 1fr ; gap: 3rem; margin-bottom: 2rem;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <svg style="width: 2rem; height: 2rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                        </path>
+                    </svg>
+                    <span style="font-size: 1.5rem; font-weight: 700;">SEVOTEC</span>
+                </div>
+                <p style="opacity: 0.8; margin-bottom: 1.5rem; line-height: 1.6;">
+                    Sistema Nacional de Votación Electrónica que moderniza la democracia ecuatoriana con tecnología
+                    segura y transparente.
+                </p>
+                <div style="display: flex; gap: 1rem;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <span>📧</span>
+                    </div>
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <span>📱</span>
+                    </div>
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <span>🌐</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 style="font-weight: 600; margin-bottom: 1rem; color: #60a5fa;">Votantes</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.5rem;"><a routerLink="/voter-login"
+                            style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">Iniciar Votación</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a routerLink="/voting-instructions"
+                            style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">Instrucciones</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a routerLink="/results"
+                            style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">Resultados</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 style="font-weight: 600; margin-bottom: 1rem; color: #f59e0b;">Contacto</h4>
+                <div style="font-size: 0.9rem; opacity: 0.8;">
+                    <p style="margin-bottom: 0.5rem;">📞 1-800-SEVOTEC</p>
+                    <p style="margin-bottom: 0.5rem;">📧 soporte@sevotec.gob.ec</p>
+                    <p style="margin-bottom: 0.5rem;">🏢 CNE - Quito, Ecuador</p>
+                    <p style="margin-bottom: 0.5rem;">🕒 24/7 Disponible</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 2rem; text-align: center;">
+            <p style="margin: 0; opacity: 0.8; font-size: 0.9rem;">
+                © {{ year }} Sistema Nacional de Votación Electrónica - República del Ecuador |
+                <span style="color: #60a5fa;">Consejo Nacional Electoral</span>
+            </p>
+        </div>
+    </div>
+</footer>

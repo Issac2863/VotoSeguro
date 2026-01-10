@@ -1,0 +1,66 @@
+<div class="login-container institutional-gradient">
+    <div class="login-card card animate-fade-in">
+        <div class="login-header">
+            <div class="logo-circle">
+                <svg viewBox="0 0 100 100" class="cne-logo-svg">
+                    <circle cx="50" cy="50" r="45" fill="var(--ecuador-blue)" stroke="var(--ecuador-yellow)"
+                        stroke-width="4" />
+                    <text x="50" y="58" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20"
+                        font-weight="bold">CNE</text>
+                </svg>
+            </div>
+            <h2>Portal del Votante</h2>
+            <p class="text-muted">Ingresa tus credenciales para acceder</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+            <!-- Cédula Input -->
+            <div class="form-group">
+                <label for="cedula" class="form-label">Número de Cédula</label>
+                <div class="input-icon-wrapper">
+                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.95 2-2.1 2H11m4 0h.1" />
+                    </svg>
+                    <input type="text" id="cedula" class="form-input with-icon" formControlName="cedula"
+                        placeholder="Ej: 1712345678" [class.error]="f['cedula'].touched && f['cedula'].invalid">
+                </div>
+                <div *ngIf="f['cedula'].touched && f['cedula'].errors" class="error-message">
+                    <span *ngIf="f['cedula'].errors['required']">La cédula es requerida</span>
+                    <span *ngIf="f['cedula'].errors['minlength']">Debe tener 10 dígitos</span>
+                    <span *ngIf="f['cedula'].errors['pattern']">Solo números permitidos</span>
+                </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="input-icon-wrapper">
+                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <input type="password" id="password" class="form-input with-icon" formControlName="password"
+                        placeholder="••••••••" [class.error]="f['password'].touched && f['password'].invalid">
+                </div>
+                <div *ngIf="f['password'].touched && f['password'].errors" class="error-message">
+                    <span *ngIf="f['password'].errors['required']">La contraseña es requerida</span>
+                    <span *ngIf="f['password'].errors['minlength']">Mínimo 6 caracteres</span>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block" [disabled]="loginForm.invalid || isLoading">
+                <span *ngIf="!isLoading">Ingresar al Sistema</span>
+                <span *ngIf="isLoading" class="loader"></span>
+            </button>
+
+            <div class="login-footer">
+                <a routerLink="/" class="back-link">
+                    &larr; Volver al inicio
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
