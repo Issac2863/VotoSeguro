@@ -1,1 +1,216 @@
-<p>dashboard works!</p>
+<div class="admin-dashboard">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>Panel Administrativo</span>
+        </div>
+
+        <div class="header-center">
+            <div class="admin-avatar">AP</div>
+            <div class="admin-info">
+                <span class="admin-name">Administrador Principal</span>
+                <span class="admin-status">En línea</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <button class="btn btn-accent" routerLink="/admin/results">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Ver Resultados
+            </button>
+            <button class="btn btn-outline" (click)="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Cerrar Sesión
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">USUARIOS HABILITADOS</span>
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div class="stat-value">{{ totalUsers }}</div>
+                <div class="stat-label">Ciudadanos registrados</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">VOTOS EMITIDOS</span>
+                    <svg class="stat-icon success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-value">{{ totalVotes }}</div>
+                <div class="stat-label">Votos registrados</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">PARTICIPACIÓN</span>
+                    <svg class="stat-icon warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <div class="stat-value">{{ participation }}%</div>
+                <div class="stat-label">Del padrón electoral</div>
+            </div>
+        </div>
+
+        <!-- Elections Section -->
+        <div class="elections-section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Gestión de Elecciones</h2>
+                    <p class="section-subtitle">Total: {{ elections.length }} elecciones registradas</p>
+                </div>
+                <button class="btn btn-primary" (click)="showCreateModal = true">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Crear Nueva Votación
+                </button>
+            </div>
+
+            <!-- Elections Table -->
+            <div class="elections-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NOMBRE</th>
+                            <th>FECHA INICIO</th>
+                            <th>FECHA FIN</th>
+                            <th>ESTADO</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let election of elections" (click)="viewElection(election)">
+                            <td class="election-name">{{ election.name }}</td>
+                            <td>{{ election.startDate | date:'dd/MM/yyyy' }}</td>
+                            <td>{{ election.endDate | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <span class="status-badge" [class]="election.status">
+                                    {{ election.status === 'active' ? 'Activa' : election.status === 'finished' ?
+                                    'Finalizada' : 'Pendiente' }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline"
+                                    (click)="viewElection(election); $event.stopPropagation()">
+                                    Ver Detalles
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Election Modal -->
+    <div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Crear Nueva Votación</h2>
+                <button class="modal-close" (click)="showCreateModal = false">&times;</button>
+            </div>
+
+            <form [formGroup]="electionForm" (ngSubmit)="createElection()">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Elección</label>
+                    <input type="text" class="form-input" formControlName="name"
+                        placeholder="Ej: Elección Presidencial 2026">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Fecha de Inicio</label>
+                        <input type="date" class="form-input" formControlName="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fecha de Fin</label>
+                        <input type="date" class="form-input" formControlName="endDate">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Opciones/Candidatos (uno por línea)</label>
+                    <textarea class="form-input" formControlName="options" rows="5"
+                        placeholder="Candidato 1 - Partido A&#10;Candidato 2 - Partido B&#10;Candidato 3 - Partido C"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" (click)="showCreateModal = false">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Votación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Election Detail Modal -->
+    <div class="modal-overlay" *ngIf="selectedElection" (click)="selectedElection = null">
+        <div class="modal-content large" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>{{ selectedElection.name }}</h2>
+                <button class="modal-close" (click)="selectedElection = null">&times;</button>
+            </div>
+
+            <div class="election-details">
+                <div class="detail-stats">
+                    <div class="detail-stat">
+                        <span class="detail-label">Total de Votos</span>
+                        <span class="detail-value">{{ selectedElection.totalVotes }}</span>
+                    </div>
+                    <div class="detail-stat">
+                        <span class="detail-label">Participación</span>
+                        <span class="detail-value">{{ selectedElection.participation }}%</span>
+                    </div>
+                    <div class="detail-stat">
+                        <span class="detail-label">Estado</span>
+                        <span class="status-badge" [class]="selectedElection.status">
+                            {{ selectedElection.status === 'active' ? 'Activa' : selectedElection.status === 'finished'
+                            ? 'Finalizada' : 'Pendiente' }}
+                        </span>
+                    </div>
+                </div>
+
+                <h3>Distribución de Votos</h3>
+                <div class="results-list">
+                    <div class="result-item" *ngFor="let option of selectedElection.options">
+                        <div class="result-info">
+                            <span class="result-name">{{ option.name }}</span>
+                            <span class="result-party">{{ option.party }}</span>
+                        </div>
+                        <div class="result-stats">
+                            <span class="result-percentage">{{ option.percentage }}%</span>
+                            <span class="result-votes">{{ option.votes }} votos</span>
+                        </div>
+                        <div class="result-bar">
+                            <div class="result-bar-fill" [style.width.%]="option.percentage"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
