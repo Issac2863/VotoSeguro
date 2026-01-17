@@ -506,3 +506,149 @@ textarea.form-input {
         grid-template-columns: 1fr;
     }
 }
+
+/* Create Election Form Styles */
+.create-election-form {
+    padding: 0 !important;
+}
+
+.form-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-hint {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+}
+
+/* Candidates List */
+.candidates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.candidate-input-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.candidate-number {
+    width: 32px;
+    height: 32px;
+    background: var(--ecuador-blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.candidate-input-row .form-input {
+    flex: 1;
+}
+
+.btn-icon-remove {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-icon-remove:hover {
+    background: #fecaca;
+}
+
+.btn-icon-remove svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    color: var(--foreground);
+    border: 1px dashed var(--border);
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+    border-style: solid;
+}
+
+.add-candidate-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+/* Default Options */
+.default-options {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border);
+}
+
+.default-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #166534;
+}
+
+.default-option svg {
+    width: 18px;
+    height: 18px;
+    color: #22c55e;
+}
+
+.default-tag {
+    margin-left: auto;
+    background: #22c55e;
+    color: white;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.create-election-form .modal-actions {
+    padding: 1.5rem;
+    margin-top: 0;
+}

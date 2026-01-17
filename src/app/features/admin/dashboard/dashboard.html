@@ -129,39 +129,115 @@
 
     <!-- Create Election Modal -->
     <div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
-        <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-content large" (click)="$event.stopPropagation()">
             <div class="modal-header">
                 <h2>Crear Nueva Votación</h2>
                 <button class="modal-close" (click)="showCreateModal = false">&times;</button>
             </div>
 
-            <form [formGroup]="electionForm" (ngSubmit)="createElection()">
-                <div class="form-group">
-                    <label class="form-label">Nombre de la Elección</label>
-                    <input type="text" class="form-input" formControlName="name"
-                        placeholder="Ej: Elección Presidencial 2026">
+            <form [formGroup]="electionForm" (ngSubmit)="createElection()" class="create-election-form">
+                <!-- Información básica -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Información de la Elección</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Nombre de la Elección *</label>
+                        <input type="text" class="form-input" formControlName="name"
+                            placeholder="Ej: Elección Presidencial 2026">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-input" formControlName="description" rows="2"
+                            placeholder="Descripción breve de la votación"></textarea>
+                    </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Fecha de Inicio</label>
-                        <input type="date" class="form-input" formControlName="startDate">
+                <!-- Fecha y hora -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Programación</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Fecha de Inicio *</label>
+                            <input type="date" class="form-input" formControlName="startDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hora de Inicio *</label>
+                            <input type="time" class="form-input" formControlName="startTime">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Fecha de Fin</label>
-                        <input type="date" class="form-input" formControlName="endDate">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Fecha de Fin *</label>
+                            <input type="date" class="form-input" formControlName="endDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hora de Fin *</label>
+                            <input type="time" class="form-input" formControlName="endTime">
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Opciones/Candidatos (uno por línea)</label>
-                    <textarea class="form-input" formControlName="options" rows="5"
-                        placeholder="Candidato 1 - Partido A&#10;Candidato 2 - Partido B&#10;Candidato 3 - Partido C"></textarea>
+                <!-- Candidatos -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Candidatos / Opciones</h3>
+                    <p class="form-hint">Los votos "Blanco" y "Nulo" se agregan automáticamente</p>
+
+                    <div class="candidates-list">
+                        <div class="candidate-input-row" *ngFor="let candidate of candidatesList; let i = index">
+                            <div class="candidate-number">{{ i + 1 }}</div>
+                            <input type="text" class="form-input" [(ngModel)]="candidate.name"
+                                [ngModelOptions]="{standalone: true}" placeholder="Nombre del candidato">
+                            <input type="text" class="form-input" [(ngModel)]="candidate.party"
+                                [ngModelOptions]="{standalone: true}" placeholder="Partido/Movimiento">
+                            <button type="button" class="btn-icon-remove" (click)="removeCandidate(i)"
+                                *ngIf="candidatesList.length > 1">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary add-candidate-btn" (click)="addCandidate()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Agregar Candidato
+                    </button>
+
+                    <!-- Opciones por defecto -->
+                    <div class="default-options">
+                        <div class="default-option">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Voto Blanco</span>
+                            <span class="default-tag">Incluido</span>
+                        </div>
+                        <div class="default-option">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                            <span>Voto Nulo</span>
+                            <span class="default-tag">Incluido</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-outline" (click)="showCreateModal = false">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Crear Votación</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Crear Votación
+                    </button>
                 </div>
             </form>
         </div>

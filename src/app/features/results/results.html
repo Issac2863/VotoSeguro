@@ -1,0 +1,160 @@
+<div class="results-page">
+  <!-- Header -->
+  <header class="results-header">
+    <div class="header-left">
+      <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <span>Resultados en Tiempo Real</span>
+    </div>
+    <a routerLink="/" class="btn btn-outline">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      Volver al Inicio
+    </a>
+  </header>
+
+  <!-- Main Content -->
+  <main class="results-content">
+    <div class="results-title-section">
+      <h1>Centro de Resultados Electorales</h1>
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        EN VIVO - Actualizando cada 10 segundos
+      </div>
+    </div>
+
+    <!-- Election Selector -->
+    <div class="election-selector">
+      <label>Seleccionar Elección:</label>
+      <select [(ngModel)]="selectedElectionId" (change)="onElectionChange()">
+        <option *ngFor="let election of elections" [value]="election.id">
+          {{ election.name }} ({{ election.status === 'active' ? 'Activa' : 'Finalizada' }})
+        </option>
+      </select>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid" *ngIf="currentElection">
+      <div class="stat-card blue">
+        <div class="stat-title">TOTAL DE VOTOS</div>
+        <div class="stat-value">{{ currentElection.totalVotes | number }}</div>
+        <div class="stat-label">Votos contabilizados</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-title">PARTICIPACIÓN</div>
+        <div class="stat-value">{{ currentElection.participation }}%</div>
+        <div class="stat-label">{{ currentElection.totalVotes }} de {{ totalRegistered }} votantes</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-title">TENDENCIA</div>
+        <div class="stat-value trend-up">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+          </svg>
+          +{{ trendPercentage }}%
+        </div>
+        <div class="stat-label">vs hora anterior</div>
+      </div>
+    </div>
+
+    <!-- Vote Distribution -->
+    <div class="results-section" *ngIf="currentElection">
+      <div class="section-header">
+        <h2>Distribución de Votos</h2>
+        <div class="live-badge">
+          <span class="live-dot small"></span>
+          Actualización en vivo
+        </div>
+      </div>
+
+      <div class="candidates-results">
+        <div class="candidate-result" *ngFor="let candidate of currentElection.options; let i = index">
+          <div class="candidate-info">
+            <span class="candidate-name">
+              {{ candidate.name }}
+              <span class="leader-badge" *ngIf="i === 0 && candidate.percentage > 0">Líder</span>
+            </span>
+            <span class="candidate-party">{{ candidate.party }}</span>
+          </div>
+          <div class="candidate-stats">
+            <span class="candidate-percentage">{{ candidate.percentage }}%</span>
+            <span class="candidate-votes">{{ candidate.votes | number }} votos</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="candidate.percentage" 
+              [class.leader]="i === 0 && candidate.percentage > 0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results by Province -->
+    <div class="results-section">
+      <h2>Participación por Provincia</h2>
+      
+      <div class="province-grid">
+        <div class="province-card" *ngFor="let province of provinces">
+          <div class="province-header">
+            <span class="province-name">{{ province.name }}</span>
+            <span class="province-percentage">{{ province.participation }}%</span>
+          </div>
+          <div class="province-bar">
+            <div class="province-fill" [style.width.%]="province.participation"></div>
+          </div>
+          <div class="province-stats">
+            <span>{{ province.votes | number }} votos</span>
+            <span>de {{ province.registered | number }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="no-data" *ngIf="provinces.length === 0">
+        No hay votos por provincia disponibles
+      </div>
+    </div>
+
+    <!-- National Summary -->
+    <div class="results-section national-summary">
+      <h2>Resumen Nacional</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <span class="summary-value">24</span>
+            <span class="summary-label">Provincias</span>
+          </div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <span class="summary-value">{{ totalRegistered | number }}</span>
+            <span class="summary-label">Electores Registrados</span>
+          </div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-icon green">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <span class="summary-value">{{ currentElection?.totalVotes | number }}</span>
+            <span class="summary-label">Votos Emitidos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
