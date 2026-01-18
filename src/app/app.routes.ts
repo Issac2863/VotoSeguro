@@ -7,13 +7,17 @@ import { InstructionsComponent } from './features/voting/instructions/instructio
 import { BallotComponent } from './features/voting/ballot/ballot';
 import { ResultsComponent } from './features/results/results';
 import { authGuard } from './core/guards/auth-guard';
+import { voterGuard } from './core/guards/voter-guard';
 
 export const routes: Routes = [
     { path: '', component: LandingComponent },
     { path: 'voter-login', component: LoginComponent },
-    { path: 'voting/instructions', component: InstructionsComponent },
-    { path: 'voting/ballot', component: BallotComponent },
+    // Rutas de votación protegidas por voterGuard
+    { path: 'voting/instructions', component: InstructionsComponent, canActivate: [voterGuard] },
+    { path: 'voting/ballot', component: BallotComponent, canActivate: [voterGuard] },
+    // Rutas públicas
     { path: 'results', component: ResultsComponent },
+    // Rutas de administración
     { path: 'admin/login', component: AdminLoginComponent },
     { path: 'admin/dashboard', component: DashboardComponent, canActivate: [authGuard] },
     { path: 'admin/results', component: ResultsComponent },

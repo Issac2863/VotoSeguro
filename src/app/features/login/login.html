@@ -21,8 +21,31 @@
                 <span class="step-label">{{ stepLabels[currentStep - 1] }}</span>
             </div>
 
+            <!-- Mensajes de error y éxito -->
+            <div class="alert alert-error" *ngIf="errorMessage">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ errorMessage }}
+            </div>
+
+            <div class="alert alert-success" *ngIf="successMessage">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ successMessage }}
+            </div>
+
+            <!-- Loading spinner -->
+            <div class="loading-overlay" *ngIf="isLoading">
+                <div class="spinner"></div>
+                <span>Procesando...</span>
+            </div>
+
             <!-- PASO 1: Credenciales -->
-            <div class="step-content" *ngIf="currentStep === 1">
+            <div class="step-content" *ngIf="currentStep === 1 && !isLoading">
                 <div class="info-box">
                     <div class="info-icon">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,7 +55,7 @@
                     </div>
                     <div class="info-content">
                         <h3>Ingrese sus credenciales</h3>
-                        <p>Use su cédula ecuatoriana o pasaporte junto con su código dactilar para autenticarse.</p>
+                        <p>Use su cédula ecuatoriana junto con su código dactilar para autenticarse.</p>
                     </div>
                 </div>
 
@@ -42,70 +65,42 @@
                         <label class="form-label">Tipo de Documento</label>
                         <select class="form-input" formControlName="documentType">
                             <option value="cedula">Cédula Ecuatoriana</option>
-                            <option value="pasaporte">Pasaporte</option>
                         </select>
                     </div>
 
                     <!-- Número de documento -->
                     <div class="form-group">
-                        <label class="form-label">Número de Documento</label>
+                        <label class="form-label">Número de Cédula</label>
                         <input type="text" class="form-input" formControlName="documentNumber"
-                            placeholder="Ej: 1712345678">
+                            placeholder="Ej: 1500958069" maxlength="10"
+                            [class.input-error]="credentialsForm.get('documentNumber')?.invalid && credentialsForm.get('documentNumber')?.touched">
+                        <small class="form-error"
+                            *ngIf="credentialsForm.get('documentNumber')?.touched && documentNumberError">
+                            {{ documentNumberError }}
+                        </small>
                     </div>
 
                     <!-- Código dactilar -->
                     <div class="form-group">
                         <label class="form-label">Código Dactilar</label>
-                        <input type="password" class="form-input" formControlName="fingerprintCode"
-                            placeholder="••••••••••">
+                        <input type="text" class="form-input" formControlName="fingerprintCode"
+                            placeholder="Ej: V4443V4444" maxlength="10" style="text-transform: uppercase;"
+                            [class.input-error]="credentialsForm.get('fingerprintCode')?.invalid && credentialsForm.get('fingerprintCode')?.touched">
                         <small class="form-hint">El código dactilar se encuentra en su cédula de identidad</small>
+                        <small class="form-error"
+                            *ngIf="credentialsForm.get('fingerprintCode')?.touched && fingerprintCodeError">
+                            {{ fingerprintCodeError }}
+                        </small>
                     </div>
                 </form>
 
-                <button class="btn btn-primary btn-block" (click)="nextStep()">
+                <button class="btn btn-primary btn-block" (click)="nextStep()" [disabled]="credentialsForm.invalid">
                     Continuar
                 </button>
             </div>
 
-            <!-- PASO 2: Verificación Facial -->
-            <div class="step-content" *ngIf="currentStep === 2">
-                <div class="info-box">
-                    <div class="info-icon camera-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
-                    <div class="info-content">
-                        <h3>Verificación Facial</h3>
-                        <p>Se accederá a la cámara de su dispositivo para verificar su identidad mediante reconocimiento
-                            facial.</p>
-                    </div>
-                </div>
-
-                <div class="camera-preview">
-                    <div class="camera-placeholder">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <p>Presione el botón para activar la cámara</p>
-                    </div>
-                </div>
-
-                <button class="btn btn-primary btn-block" (click)="nextStep()">
-                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    </svg>
-                    Activar Cámara y Verificar
-                </button>
-            </div>
-
-            <!-- PASO 3: Código por Email -->
-            <div class="step-content" *ngIf="currentStep === 3">
+            <!-- PASO 2: Verificación por OTP (Email) -->
+            <div class="step-content" *ngIf="currentStep === 2 && !isLoading">
                 <div class="info-box" *ngIf="!codeSent">
                     <div class="info-icon email-icon">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,8 +109,8 @@
                         </svg>
                     </div>
                     <div class="info-content">
-                        <h3>Se enviará un código</h3>
-                        <p>Se enviará un código de 8 dígitos a<br><strong>{{ maskedEmail }}</strong></p>
+                        <h3>Verificación por correo</h3>
+                        <p>Se enviará un código de verificación a<br><strong>{{ maskedEmail }}</strong></p>
                         <p class="info-warning">Si este no es su correo, comuníquese con soporte técnico.</p>
                     </div>
                 </div>
@@ -130,35 +125,105 @@
                     <div class="info-content">
                         <h3>Código enviado</h3>
                         <p>Hemos enviado un código de verificación a<br><strong>{{ maskedEmail }}</strong></p>
-                        <p class="info-warning">Si este no es su correo, comuníquese con soporte técnico.</p>
                     </div>
                 </div>
 
                 <div *ngIf="!codeSent">
                     <button class="btn btn-primary btn-block" (click)="sendCode()">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
                         Enviar código
                     </button>
                 </div>
 
                 <div *ngIf="codeSent">
                     <div class="form-group">
-                        <label class="form-label">Código de Verificación</label>
+                        <label class="form-label">Código de Verificación (6 dígitos)</label>
                         <input type="text" class="form-input code-input" [(ngModel)]="verificationCode"
-                            placeholder="1 2 3 4 5 6 7 8" maxlength="8">
+                            placeholder="123456" maxlength="6">
                     </div>
 
-                    <button class="btn btn-primary btn-block" (click)="verifyAndLogin()">
+                    <button class="btn btn-primary btn-block" (click)="nextStep()"
+                        [disabled]="verificationCode.length !== 6">
+                        Verificar código
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASO 3: Verificación Facial -->
+            <div class="step-content" *ngIf="currentStep === 3 && !isLoading">
+                <div class="info-box">
+                    <div class="info-icon camera-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <div class="info-content">
+                        <h3>Verificación Facial</h3>
+                        <p>Tome una foto de su rostro para completar la verificación de identidad.</p>
+                    </div>
+                </div>
+
+                <!-- Área de cámara -->
+                <div class="camera-section">
+                    <!-- Video en vivo -->
+                    <div class="camera-preview" *ngIf="isCameraActive && !capturedImage">
+                        <video #videoElement autoplay playsinline></video>
+                        <div class="camera-overlay">
+                            <div class="face-guide"></div>
+                        </div>
+                    </div>
+
+                    <!-- Imagen capturada -->
+                    <div class="camera-preview" *ngIf="capturedImage">
+                        <img [src]="capturedImage" alt="Foto capturada">
+                    </div>
+
+                    <!-- Placeholder cuando no hay cámara -->
+                    <div class="camera-placeholder" *ngIf="!isCameraActive && !capturedImage">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <p>La cámara se activará automáticamente</p>
+                    </div>
+
+                    <!-- Canvas oculto para captura -->
+                    <canvas #canvasElement style="display: none;"></canvas>
+                </div>
+
+                <!-- Botones de control de cámara -->
+                <div class="camera-controls">
+                    <button class="btn btn-secondary" *ngIf="isCameraActive && !capturedImage" (click)="captureImage()">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        </svg>
+                        Tomar foto
+                    </button>
+
+                    <button class="btn btn-outline" *ngIf="capturedImage" (click)="retakePhoto()">
+                        Tomar otra foto
+                    </button>
+
+                    <button class="btn btn-primary btn-block" *ngIf="capturedImage" (click)="verifyAndLogin()">
                         Verificar e Ingresar
                     </button>
                 </div>
             </div>
 
             <!-- Botón Volver -->
-            <button class="btn btn-outline btn-block" (click)="previousStep()" *ngIf="currentStep > 1 || codeSent">
+            <button class="btn btn-outline btn-block" (click)="previousStep()"
+                *ngIf="(currentStep > 1 || codeSent) && !isLoading">
                 Volver
             </button>
 
-            <a routerLink="/" class="btn btn-outline btn-block" *ngIf="currentStep === 1 && !codeSent">
+            <a routerLink="/" class="btn btn-outline btn-block" *ngIf="currentStep === 1 && !codeSent && !isLoading">
                 Volver al Inicio
             </a>
 
