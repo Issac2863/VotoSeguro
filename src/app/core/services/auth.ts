@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
+import { tap, catchError, map, delay } from 'rxjs/operators';
 import { environment } from '../config/environment';
 
 export interface AuthSession {
@@ -75,14 +75,12 @@ export class AuthService {
    */
   sendOtp(cedula: string): Observable<any> {
     // Simular envío de OTP ya que el backend mock no lo implementa
-    // En producción real, esto debería llamar a un endpoint /auth/otp/send
-    return new Observable(observer => {
-      setTimeout(() => {
-        console.log('Mock: OTP enviado a email del usuario');
-        observer.next({ success: true, message: 'Código enviado' });
-        observer.complete();
-      }, 1000);
-    });
+    // Usando of() con delay() para que Angular detecte los cambios correctamente
+    console.log('Mock: Enviando OTP a email del usuario...');
+    return of({ success: true, message: 'Código enviado' }).pipe(
+      delay(1000),
+      tap(() => console.log('Mock: OTP enviado exitosamente'))
+    );
   }
 
   /**
