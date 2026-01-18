@@ -70,23 +70,27 @@ export class AuthService {
 
   /**
    * Paso 2: Enviar código OTP al email
+   * NOTA: El backend actual no tiene endpoint de envío de OTP,
+   * solo de verificación. El código se simula aquí.
    */
   sendOtp(cedula: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/otp`, {
-      cedula,
-      action: 'send'
-    }).pipe(
-      catchError(this.handleError)
-    );
+    // Simular envío de OTP ya que el backend mock no lo implementa
+    // En producción real, esto debería llamar a un endpoint /auth/otp/send
+    return new Observable(observer => {
+      setTimeout(() => {
+        console.log('Mock: OTP enviado a email del usuario');
+        observer.next({ success: true, message: 'Código enviado' });
+        observer.complete();
+      }, 1000);
+    });
   }
 
   /**
    * Paso 2b: Verificar código OTP
    */
-  verifyOtp(cedula: string, codigo: string): Observable<ValidateOtpResponse> {
+  verifyOtp(cedula: string, otpCode: string): Observable<ValidateOtpResponse> {
     return this.http.post<ValidateOtpResponse>(`${this.apiUrl}/auth/otp`, {
-      cedula,
-      codigo
+      otpCode  // Backend espera solo { otpCode: string }
     }).pipe(
       tap(response => {
         if (response.success) {
