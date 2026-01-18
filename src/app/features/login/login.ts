@@ -100,18 +100,23 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     const { documentNumber, fingerprintCode } = this.credentialsForm.value;
 
+    console.log('[LOGIN] Iniciando validación de credenciales:', { documentNumber, fingerprintCode });
+
     this.authService.validateCredentials(documentNumber, fingerprintCode).subscribe({
       next: (response) => {
+        console.log('[LOGIN] Respuesta recibida:', response);
         this.isLoading = false;
         if (response.success) {
           this.successMessage = response.message;
-          this.maskedEmail = this.authService.getMaskedEmail();
+          this.maskedEmail = response.email || this.authService.getMaskedEmail();
+          console.log('[LOGIN] Email enmascarado:', this.maskedEmail);
           this.currentStep = 2;
         } else {
           this.errorMessage = response.message || 'Credenciales inválidas';
         }
       },
       error: (error) => {
+        console.error('[LOGIN] Error:', error);
         this.isLoading = false;
         this.errorMessage = error.message || 'Error al validar credenciales';
       }
