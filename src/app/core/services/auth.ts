@@ -134,10 +134,31 @@ export class AuthService {
   }
 
   /**
+   * Login Administrador
+   */
+  adminLogin(credentials: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/auth/admin/login`, credentials).pipe(
+      tap(response => {
+        if (response.success && response.token) {
+          localStorage.setItem('admin_token', response.token);
+        }
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
    * Verificar si el usuario está autenticado
    */
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
+  }
+
+  /**
+   * Verificar si es admin
+   */
+  isAdminLoggedIn(): boolean {
+    return !!localStorage.getItem('admin_token');
   }
 
   /**

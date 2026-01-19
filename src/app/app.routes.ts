@@ -9,6 +9,8 @@ import { ResultsComponent } from './features/results/results';
 import { authGuard } from './core/guards/auth-guard';
 import { voterGuard } from './core/guards/voter-guard';
 
+import { adminGuard } from './core/guards/admin-guard';
+
 export const routes: Routes = [
     { path: '', component: LandingComponent },
     { path: 'voter-login', component: LoginComponent },
@@ -19,7 +21,7 @@ export const routes: Routes = [
     { path: 'results', component: ResultsComponent },
     // Rutas de administración
     { path: 'admin/login', component: AdminLoginComponent },
-    { path: 'admin/dashboard', component: DashboardComponent, canActivate: [authGuard] },
+    { path: 'admin/dashboard', component: DashboardComponent, canActivate: [adminGuard] },
     { path: 'admin/results', component: ResultsComponent },
     { path: 'admin-dashboard', redirectTo: 'admin/dashboard' },
     { path: '**', redirectTo: '' }
