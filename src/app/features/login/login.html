@@ -140,13 +140,15 @@
 
                 <div *ngIf="codeSent">
                     <div class="form-group">
-                        <label class="form-label">Código de Verificación (6 dígitos)</label>
+                        <label class="form-label">Código de Verificación (8 dígitos)</label>
                         <input type="text" class="form-input code-input" [(ngModel)]="verificationCode"
-                            placeholder="123456" maxlength="6">
+                            placeholder="12345678" maxlength="8" (paste)="$event.preventDefault()" autocomplete="off"
+                            inputmode="numeric">
+                        <small class="form-hint">⚠️ Por seguridad, el código debe ser escrito manualmente</small>
                     </div>
 
                     <button class="btn btn-primary btn-block" (click)="nextStep()"
-                        [disabled]="verificationCode.length !== 6">
+                        [disabled]="verificationCode.length !== 8">
                         Verificar código
                     </button>
                 </div>
@@ -171,26 +173,25 @@
 
                 <!-- Área de cámara -->
                 <div class="camera-section">
-                    <!-- Video en vivo -->
-                    <div class="camera-preview" *ngIf="isCameraActive && !capturedImage">
-                        <video #videoElement autoplay playsinline></video>
-                        <div class="camera-overlay">
+                    <!-- Video en vivo (siempre en DOM, oculto cuando no activo) -->
+                    <div class="camera-preview" [hidden]="capturedImage">
+                        <video #videoElement autoplay playsinline [hidden]="!isCameraActive"></video>
+                        <div class="camera-overlay" *ngIf="isCameraActive">
                             <div class="face-guide"></div>
+                        </div>
+                        <!-- Placeholder cuando no hay cámara -->
+                        <div class="camera-placeholder-inner" *ngIf="!isCameraActive">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <p>La cámara se activará automáticamente</p>
                         </div>
                     </div>
 
                     <!-- Imagen capturada -->
                     <div class="camera-preview" *ngIf="capturedImage">
                         <img [src]="capturedImage" alt="Foto capturada">
-                    </div>
-
-                    <!-- Placeholder cuando no hay cámara -->
-                    <div class="camera-placeholder" *ngIf="!isCameraActive && !capturedImage">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <p>La cámara se activará automáticamente</p>
                     </div>
 
                     <!-- Canvas oculto para captura -->
