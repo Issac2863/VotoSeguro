@@ -196,24 +196,58 @@ export class LoginComponent implements OnInit, OnDestroy {
   /**
    * Paso 3: Iniciar cámara
    */
-  async startCamera(): Promise<void> {
-    console.log('[CAMERA] Iniciando cámara...');
+  // Cámara
+  availableCameras: MediaDeviceInfo[] = [];
+  selectedCameraId: string = '';
+
+  // ... (otros métodos)
+
+  async getCameras() {
+    try {
+      // Pedir permisos primero para obtener labels
+      await navigator.mediaDevices.getUserMedia({ video: true });
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      this.availableCameras = devices.filter(device => device.kind === 'videoinput');
+
+      console.log('[CAMERA] Cámaras encontradas:', this.availableCameras);
+
+      if (this.availableCameras.length > 0 && !this.selectedCameraId) {
+        // Preferir la cámara que no sea la default si hay varias (usualmente USB)
+        // O simplemente seleccionar la primera
+        this.selectedCameraId = this.availableCameras[0].deviceId;
+      }
+    } catch (error) {
+      console.error('[CAMERA] Error enumerando dispositivos:', error);
+    }
+  }
+
+  onCameraChange(event: any) {
+    const deviceId = event.target.value;
+    this.selectedCameraId = deviceId;
+    this.startCamera(deviceId);
+  }
+
+  /**
+   * Paso 3: Iniciar cámara
+   */
+  async startCamera(deviceId?: string): Promise<void> {
+    console.log('[CAMERA] Iniciando cámara...', deviceId ? `Device: ${deviceId}` : 'Auto');
+    this.errorMessage = '';
+
+    // Detener stream anterior si existe
+    this.stopCamera();
 
     try {
-      // Primero intentar con facingMode 'user' (webcam frontal)
-      try {
-        this.mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: 640, height: 480 }
-        });
-        console.log('[CAMERA] Cámara frontal obtenida');
-      } catch (frontError) {
-        console.log('[CAMERA] facingMode user falló, intentando cualquier cámara...');
-        // Si falla, intentar con cualquier cámara disponible (USB)
-        this.mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480 }
-        });
-        console.log('[CAMERA] Cámara alternativa obtenida');
-      }
+      await this.getCameras(); // Refrescar lista
+
+      const constraints: MediaStreamConstraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: 640, height: 480 }
+          : { width: 640, height: 480 } // Default sin facingMode forzado si no se especifica
+      };
+
+      this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
 
       if (this.videoElement?.nativeElement) {
         this.videoElement.nativeElement.srcObject = this.mediaStream;
@@ -221,14 +255,10 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.isCameraActive = true;
         this.cdr.detectChanges();
         console.log('[CAMERA] Video reproduciendo');
-      } else {
-        console.error('[CAMERA] videoElement no encontrado');
-        this.errorMessage = 'Error al inicializar el video';
-        this.cdr.detectChanges();
       }
     } catch (error: any) {
       console.error('[CAMERA] Error accessing camera:', error);
-      this.errorMessage = `No se pudo acceder a la cámara: ${error.message || 'Verifique los permisos'}`;
+      this.errorMessage = `No se pudo acceder a la cámara: ${error.message}`;
       this.cdr.detectChanges();
     }
   }

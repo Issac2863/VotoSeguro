@@ -171,6 +171,16 @@
                     </div>
                 </div>
 
+                <!-- Selector de Cámara -->
+                <div class="form-group" *ngIf="availableCameras.length > 1" style="margin-bottom: 1rem;">
+                    <label class="form-label">Seleccionar Cámara</label>
+                    <select class="form-input" (change)="onCameraChange($event)" [value]="selectedCameraId">
+                        <option *ngFor="let camera of availableCameras; let i = index" [value]="camera.deviceId">
+                            {{ camera.label || 'Cámara ' + (i + 1) }}
+                        </option>
+                    </select>
+                </div>
+
                 <!-- Área de cámara -->
                 <div class="camera-section">
                     <!-- Video en vivo (siempre en DOM, oculto cuando no activo) -->
