@@ -48,7 +48,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private router: Router,
     private encryptionService: EncryptionService, // Inyectamos tu servicio
-    private http: HttpClient // Inyectamos el cliente HTTP
+    private http: HttpClient, // Inyectamos el cliente HTTP
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {
@@ -414,43 +414,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  verifyAndLogin(): void {
-    /*TEST PARA CIFRAR DATOS
-    // 1. Obtener los datos del formulario
-    const rawData = {
-      cedula: "1500958069",
-      codigoDactilar: "V4443V4444"
-    }
-    console.log('1. Datos originales:', rawData);
 
-    try {
-      // 2. Cifrar los datos usando tu EncryptionService
-      // Esto convertirá el objeto en un string Base64 ilegible
-      const encryptedData = this.encryptionService.encrypt(rawData);
-      console.log('2. Datos cifrados (Base64):', encryptedData);
 
-      // 3. Preparar el cuerpo de la petición
-      const payload = { data: encryptedData };
-
-      // 4. Enviar al Backend (Gateway)
-      // Ajusta la URL según tu configuración de NestJS
-      const url = `${environment.apiUrl}/auth/identity`;
-      console.log('Enviando datos al servidor en:', url);
-      this.http.post(url, payload).subscribe({
-        next: (response: any) => {
-          console.log('3. Respuesta del servidor:', response);
-          // Si el servidor devuelve el pre-token, navegamos*/
-          this.router.navigate(['/voting/instructions']);/*
-        },
-        error: (err) => {
-          console.error('Error en la petición:', err);
-          alert('Error al verificar credenciales. Revisa la consola.');
-        }
-      });
-
-    } catch (error) {
-      console.error('Error en el proceso de cifrado:', error);
-    }*/
   get fingerprintCodeError(): string {
     const control = this.credentialsForm.get('fingerprintCode');
     if (control?.hasError('required')) return 'El código dactilar es obligatorio';
