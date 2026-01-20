@@ -108,7 +108,7 @@ export class AuthService {
   validateBiometric(cedula: string, imagenFacial: string): Observable<ValidateBiometricResponse> {
     return this.http.post<ValidateBiometricResponse>(`${this.apiUrl}/auth/biometrics`, {
       cedula,
-      imagenFacial
+      image: imagenFacial // Renombrado a 'image' según DTO del Gateway
     }).pipe(
       tap(response => {
         if (response.success && response.token) {
