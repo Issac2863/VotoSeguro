@@ -129,6 +129,8 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.successMessage = response.message;
           this.maskedEmail = response.email || this.authService.getMaskedEmail();
           console.log('[LOGIN] Email enmascarado:', this.maskedEmail);
+          // El OTP se envía automáticamente con la validación de credenciales
+          this.codeSent = true;
           this.currentStep = 2;
           this.cdr.detectChanges(); // Forzar actualización de UI
         } else {
