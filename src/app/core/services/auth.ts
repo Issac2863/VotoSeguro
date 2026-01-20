@@ -83,11 +83,11 @@ export class AuthService {
 
   /**
    * Paso 2b: Verificar código OTP
-   * Gateway solo espera { otpCode } sin cedula
    */
   verifyOtp(cedula: string, otpCode: string): Observable<ValidateOtpResponse> {
     return this.http.post<ValidateOtpResponse>(`${this.apiUrl}/auth/otp`, {
-      otpCode  // Solo enviar otpCode, Gateway no espera cedula
+      cedula,
+      otpCode
     }).pipe(
       tap(response => {
         if (response.success) {
