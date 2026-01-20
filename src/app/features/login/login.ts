@@ -173,8 +173,8 @@ export class LoginComponent implements OnInit, OnDestroy {
    * Paso 2b: Verificar código OTP
    */
   verifyOtp(): void {
-    if (!this.verificationCode || this.verificationCode.length !== 8) {
-      this.errorMessage = 'Ingrese el código de 8 dígitos';
+    if (!this.verificationCode || this.verificationCode.length !== 6) {
+      this.errorMessage = 'Ingrese el código de 6 dígitos';
       return;
     }
 

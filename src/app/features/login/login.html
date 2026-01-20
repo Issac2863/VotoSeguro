@@ -140,9 +140,9 @@
 
                 <div *ngIf="codeSent">
                     <div class="form-group">
-                        <label class="form-label">Código de Verificación (8 dígitos)</label>
+                        <label class="form-label">Código de Verificación (6 dígitos)</label>
                         <input type="text" class="form-input code-input" [(ngModel)]="verificationCode"
-                            placeholder="12345678" maxlength="8" (paste)="$event.preventDefault()" autocomplete="off"
+                            placeholder="123456" maxlength="6" (paste)="$event.preventDefault()" autocomplete="off"
                             inputmode="numeric">
                         <small class="form-hint">⚠️ Por seguridad, el código debe ser escrito manualmente</small>
                     </div>
