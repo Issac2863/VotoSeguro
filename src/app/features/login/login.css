@@ -427,3 +427,20 @@
 .camera-controls .btn {
     width: 100%;
 }
+
+.upload-option {
+    width: 100%;
+}
+
+.upload-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.upload-btn:hover {
+    background: var(--ecuador-blue);
+    color: white;
+}

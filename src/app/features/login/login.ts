@@ -57,6 +57,13 @@ export class LoginComponent implements OnInit, OnDestroy {
         Validators.pattern(/^[A-Z0-9]{10}$/)
       ]]
     });
+
+    // Convertir código dactilar a mayúsculas automáticamente
+    this.credentialsForm.get('fingerprintCode')?.valueChanges.subscribe(value => {
+      if (value && value !== value.toUpperCase()) {
+        this.credentialsForm.get('fingerprintCode')?.setValue(value.toUpperCase(), { emitEvent: false });
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -289,7 +296,30 @@ export class LoginComponent implements OnInit, OnDestroy {
    */
   retakePhoto(): void {
     this.capturedImage = '';
+    this.errorMessage = '';
     this.startCamera();
+  }
+
+  /**
+   * Manejar selección de archivo de imagen
+   */
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.errorMessage = 'Por favor seleccione un archivo de imagen';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.capturedImage = reader.result as string;
+      this.stopCamera();
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
   }
 
   /**
@@ -313,12 +343,18 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.successMessage = 'Verificación completada';
           this.router.navigate(['/voting/instructions']);
         } else {
-          this.errorMessage = response.message || 'Verificación facial fallida';
+          this.errorMessage = response.message || 'Verificación facial fallida. Intente tomar otra foto.';
+          this.capturedImage = ''; // Limpiar para permitir reintentar
+          this.startCamera(); // Reactivar cámara
+          this.cdr.detectChanges();
         }
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Error en la verificación facial';
+        this.errorMessage = error.message || 'Error en la verificación facial. Intente nuevamente.';
+        this.capturedImage = ''; // Limpiar para permitir reintentar
+        this.startCamera(); // Reactivar cámara
+        this.cdr.detectChanges();
       }
     });
   }
