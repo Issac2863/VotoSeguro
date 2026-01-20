@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { EncryptionService } from '../../core/services/encryption.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -28,7 +31,9 @@ export class LoginComponent {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private encryptionService: EncryptionService, // Inyectamos tu servicio
+    private http: HttpClient // Inyectamos el cliente HTTP
   ) {
     this.credentialsForm = this.fb.group({
       documentType: ['cedula'],
@@ -57,7 +62,41 @@ export class LoginComponent {
   }
 
   verifyAndLogin(): void {
-    // Navegación a las instrucciones de votación
-    this.router.navigate(['/voting/instructions']);
+    /*TEST PARA CIFRAR DATOS
+    // 1. Obtener los datos del formulario
+    const rawData = {
+      cedula: "1500958069",
+      codigoDactilar: "V4443V4444"
+    }
+    console.log('1. Datos originales:', rawData);
+
+    try {
+      // 2. Cifrar los datos usando tu EncryptionService
+      // Esto convertirá el objeto en un string Base64 ilegible
+      const encryptedData = this.encryptionService.encrypt(rawData);
+      console.log('2. Datos cifrados (Base64):', encryptedData);
+
+      // 3. Preparar el cuerpo de la petición
+      const payload = { data: encryptedData };
+
+      // 4. Enviar al Backend (Gateway)
+      // Ajusta la URL según tu configuración de NestJS
+      const url = `${environment.apiUrl}/auth/identity`;
+      console.log('Enviando datos al servidor en:', url);
+      this.http.post(url, payload).subscribe({
+        next: (response: any) => {
+          console.log('3. Respuesta del servidor:', response);
+          // Si el servidor devuelve el pre-token, navegamos*/
+          this.router.navigate(['/voting/instructions']);/*
+        },
+        error: (err) => {
+          console.error('Error en la petición:', err);
+          alert('Error al verificar credenciales. Revisa la consola.');
+        }
+      });
+
+    } catch (error) {
+      console.error('Error en el proceso de cifrado:', error);
+    }*/
   }
 }
