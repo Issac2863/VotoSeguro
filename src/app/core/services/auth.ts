@@ -28,6 +28,7 @@ export interface ValidateBiometricResponse {
   message: string;
   token?: string;
   accessToken?: string; // Nuevo formato del backend
+  expirationTime?: number; // Unix timestamp de expiración
 }
 
 @Injectable({
@@ -114,6 +115,10 @@ export class AuthService {
         const token = response.accessToken || response.token;
         if (response.success && token) {
           localStorage.setItem('token', token);
+          // Guardar tiempo de expiración para el timer de votación
+          if (response.expirationTime) {
+            localStorage.setItem('votingExpirationTime', response.expirationTime.toString());
+          }
           const currentSession = this.sessionSubject.value;
           if (currentSession) {
             currentSession.step = 'complete';
