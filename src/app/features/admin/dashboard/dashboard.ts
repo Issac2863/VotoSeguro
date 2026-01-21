@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ElectionService } from '../../../core/services/election.service';
 
 interface ElectionOption {
   name: string;
@@ -36,63 +37,27 @@ interface CandidateInput {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   totalUsers = 15000;
   totalVotes = 0;
   participation = 0;
 
   showCreateModal = false;
   selectedElection: Election | null = null;
-
   electionForm: FormGroup;
 
-  // Lista de candidatos para el formulario
   candidatesList: CandidateInput[] = [
     { name: '', party: '' },
     { name: '', party: '' }
   ];
 
-  elections: Election[] = [
-    {
-      id: 1,
-      name: 'Consulta Popular 2026',
-      startDate: new Date('2026-01-15'),
-      startTime: '07:00',
-      endDate: new Date('2026-01-15'),
-      endTime: '17:00',
-      status: 'active',
-      totalVotes: 0,
-      participation: 0,
-      options: [
-        { name: 'Alan Brito Delago', party: 'DEP', votes: 0, percentage: 0 },
-        { name: 'Susana Horia', party: 'Movimiento Ciudadano', votes: 0, percentage: 0 },
-        { name: 'Armando Esteban Quito', party: 'Movimiento Libertad', votes: 0, percentage: 0 },
-        { name: 'Jose Delgado', party: 'Movimiento Democrático', votes: 0, percentage: 0 },
-        { name: 'Voto Blanco', party: 'Sin elección', votes: 0, percentage: 0 },
-        { name: 'Voto Nulo', party: 'Ninguno', votes: 0, percentage: 0 }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Elección Presidencial 2025',
-      startDate: new Date('2025-02-07'),
-      startTime: '07:00',
-      endDate: new Date('2025-02-07'),
-      endTime: '17:00',
-      status: 'finished',
-      totalVotes: 8500,
-      participation: 56.67,
-      options: [
-        { name: 'Carlos Mendoza', party: 'Partido Progreso Nacional', votes: 3200, percentage: 37.6 },
-        { name: 'María Fernández', party: 'Alianza Ciudadana', votes: 2800, percentage: 32.9 },
-        { name: 'Roberto Álvarez', party: 'Movimiento Renovación', votes: 1500, percentage: 17.6 },
-        { name: 'Voto Blanco', party: 'Sin elección', votes: 700, percentage: 8.2 },
-        { name: 'Voto Nulo', party: 'Ninguno', votes: 300, percentage: 3.5 }
-      ]
-    }
-  ];
+  elections: Election[] = [];
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private electionService: ElectionService
+  ) {
     this.electionForm = this.fb.group({
       name: [''],
       description: [''],
@@ -100,6 +65,53 @@ export class DashboardComponent {
       startTime: ['07:00'],
       endDate: [''],
       endTime: ['17:00']
+    });
+  }
+
+  ngOnInit() {
+    this.loadElections();
+  }
+
+  loadElections() {
+    this.electionService.getAllElections().subscribe({
+      next: (data) => {
+        this.elections = data.map(e => {
+          const electionDate = new Date(e.election_date);
+          const today = new Date();
+          // Resetear horas para comparar solo fechas
+          today.setHours(0, 0, 0, 0);
+          const eDate = new Date(electionDate);
+          eDate.setHours(0, 0, 0, 0);
+
+          let status: 'active' | 'pending' | 'finished' = 'pending';
+          if (eDate.getTime() === today.getTime()) status = 'active';
+          else if (eDate.getTime() < today.getTime()) status = 'finished';
+          else status = 'pending';
+
+          return {
+            id: e.id,
+            name: e.name,
+            description: 'Elección cargada del sistema',
+            startDate: electionDate,
+            startTime: '07:00',
+            endDate: electionDate,
+            endTime: '17:00',
+            status: status,
+            totalVotes: 0, // Placeholder
+            participation: 0,
+            options: e.candidates ? e.candidates.map((c: any) => ({
+              name: c.name,
+              party: c.political_group,
+              votes: 0,
+              percentage: 0
+            })) : []
+          } as Election;
+        });
+
+        // Calcular stats generales (mock por ahora)
+        this.totalVotes = this.elections.reduce((acc, curr) => acc + curr.totalVotes, 0);
+      },
+      error: (err) => console.error('Error cargando elecciones', err)
     });
   }
 
@@ -113,49 +125,13 @@ export class DashboardComponent {
     }
   }
 
+  // Método legacy conservado por compatibilidad del template, 
+  // pero la creación real ahora se hace en CreateElectionComponent
   createElection(): void {
     const formValue = this.electionForm.value;
-
-    // Crear opciones desde la lista de candidatos
-    const candidateOptions: ElectionOption[] = this.candidatesList
-      .filter(c => c.name.trim())
-      .map(c => ({
-        name: c.name.trim(),
-        party: c.party.trim(),
-        votes: 0,
-        percentage: 0
-      }));
-
-    // Agregar Voto Blanco y Voto Nulo automáticamente
-    candidateOptions.push(
-      { name: 'Voto Blanco', party: 'Sin elección', votes: 0, percentage: 0 },
-      { name: 'Voto Nulo', party: 'Ninguno', votes: 0, percentage: 0 }
-    );
-
-    const newElection: Election = {
-      id: this.elections.length + 1,
-      name: formValue.name,
-      description: formValue.description,
-      startDate: new Date(formValue.startDate),
-      startTime: formValue.startTime,
-      endDate: new Date(formValue.endDate),
-      endTime: formValue.endTime,
-      status: 'pending',
-      totalVotes: 0,
-      participation: 0,
-      options: candidateOptions
-    };
-
-    this.elections.unshift(newElection);
+    // ... lógica legacy omitida ...
+    alert('Por favor use el botón "Crear Nueva Votación" para ir al nuevo formulario.');
     this.showCreateModal = false;
-    this.electionForm.reset({
-      startTime: '07:00',
-      endTime: '17:00'
-    });
-    this.candidatesList = [
-      { name: '', party: '' },
-      { name: '', party: '' }
-    ];
   }
 
   viewElection(election: Election): void {
