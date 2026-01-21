@@ -73,11 +73,9 @@ export class AuthService {
    * Paso 2: Enviar código OTP al email
    */
   sendOtp(cedula: string): Observable<any> {
-    console.log('[AuthService] Solicitando envío de OTP para:', cedula);
+
     return this.http.post<any>(`${this.apiUrl}/auth/send-otp`, { cedula }).pipe(
-      tap(response => {
-        console.log('[AuthService] Respuesta de send-otp:', response);
-      }),
+
       catchError(this.handleError)
     );
   }

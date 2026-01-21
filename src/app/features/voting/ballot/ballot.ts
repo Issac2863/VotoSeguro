@@ -95,7 +95,7 @@ export class BallotComponent implements OnInit, OnDestroy {
       this.votingEndTime = new Date();
       this.stopTimer();
       // Aquí iría la lógica para enviar el voto al backend
-      console.log('Voto confirmado:', this.selectedCandidate === -1 ? 'Voto en Blanco' : this.candidates[this.selectedCandidate].name);
+
       // Navegar a página de confirmación (por implementar)
       alert('¡Voto registrado exitosamente!');
       this.router.navigate(['/']);
@@ -107,7 +107,7 @@ export class BallotComponent implements OnInit, OnDestroy {
     if (this.selectedCandidate === null) {
       this.selectedCandidate = -1; // Voto en blanco si no seleccionó
     }
-    console.log('Tiempo agotado. Voto guardado:', this.selectedCandidate === -1 ? 'Voto en Blanco' : this.candidates[this.selectedCandidate].name);
+
     alert('Tiempo agotado. Su voto ha sido registrado.');
     this.router.navigate(['/']);
   }

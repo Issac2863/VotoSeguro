@@ -120,16 +120,16 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     const { documentNumber, fingerprintCode } = this.credentialsForm.value;
 
-    console.log('[LOGIN] Iniciando validación de credenciales:', { documentNumber, fingerprintCode });
+
 
     this.authService.validateCredentials(documentNumber, fingerprintCode).subscribe({
       next: (response) => {
-        console.log('[LOGIN] Respuesta recibida:', response);
+
         this.isLoading = false;
         if (response.success) {
           this.successMessage = response.message;
           this.maskedEmail = response.email || this.authService.getMaskedEmail();
-          console.log('[LOGIN] Email enmascarado:', this.maskedEmail);
+
           // El OTP se envía automáticamente con la validación de credenciales
           this.codeSent = true;
           this.currentStep = 2;
@@ -226,7 +226,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       const devices = await navigator.mediaDevices.enumerateDevices();
       this.availableCameras = devices.filter(device => device.kind === 'videoinput');
 
-      console.log('[CAMERA] Cámaras encontradas:', this.availableCameras);
+
 
       if (this.availableCameras.length > 0 && !this.selectedCameraId) {
         // Preferir la cámara que no sea la default si hay varias (usualmente USB)
@@ -248,7 +248,7 @@ export class LoginComponent implements OnInit, OnDestroy {
    * Paso 3: Iniciar cámara
    */
   async startCamera(deviceId?: string): Promise<void> {
-    console.log('[CAMERA] Iniciando cámara...', deviceId ? `Device: ${deviceId}` : 'Auto');
+
     this.errorMessage = '';
 
     // Detener stream anterior si existe
@@ -270,7 +270,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         await this.videoElement.nativeElement.play();
         this.isCameraActive = true;
         this.cdr.detectChanges();
-        console.log('[CAMERA] Video reproduciendo');
+
       }
     } catch (error: any) {
       console.error('[CAMERA] Error accessing camera:', error);
