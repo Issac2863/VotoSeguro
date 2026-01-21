@@ -17,7 +17,8 @@ export class InstructionsComponent {
 
   continueToVoting(): void {
     if (this.hasReadInstructions) {
-      this.router.navigate(['/voting/ballot']);
+      // Nuevo flujo: Instrucciones -> Login -> Ballot
+      this.router.navigate(['/voter-login']);
     }
   }
 }

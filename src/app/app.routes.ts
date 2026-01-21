@@ -13,9 +13,9 @@ import { adminGuard } from './core/guards/admin-guard';
 
 export const routes: Routes = [
     { path: '', component: LandingComponent },
+    // Flujo: Instrucciones (público) -> Login (3 pasos) -> Ballot (protegido)
+    { path: 'voting/instructions', component: InstructionsComponent }, // Ahora pública
     { path: 'voter-login', component: LoginComponent },
-    // Rutas de votación protegidas por voterGuard
-    { path: 'voting/instructions', component: InstructionsComponent, canActivate: [voterGuard] },
     { path: 'voting/ballot', component: BallotComponent, canActivate: [voterGuard] },
     // Rutas públicas
     { path: 'results', component: ResultsComponent },

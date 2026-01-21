@@ -27,6 +27,7 @@ export interface ValidateBiometricResponse {
   success: boolean;
   message: string;
   token?: string;
+  accessToken?: string; // Nuevo formato del backend
 }
 
 @Injectable({
@@ -111,8 +112,10 @@ export class AuthService {
       image: imagenFacial // Renombrado a 'image' según DTO del Gateway
     }).pipe(
       tap(response => {
-        if (response.success && response.token) {
-          localStorage.setItem('token', response.token);
+        // Backend devuelve 'accessToken', verificamos ambas opciones por compatibilidad
+        const token = response.accessToken || response.token;
+        if (response.success && token) {
+          localStorage.setItem('token', token);
           const currentSession = this.sessionSubject.value;
           if (currentSession) {
             currentSession.step = 'complete';

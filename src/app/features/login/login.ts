@@ -87,7 +87,8 @@ export class LoginComponent implements OnInit, OnDestroy {
               this.currentStep = 3;
               break;
             case 'complete':
-              this.router.navigate(['/voting/instructions']);
+              // Nuevo flujo: después de autenticar ir directo a votación
+              this.router.navigate(['/voting/ballot']);
               break;
             default:
               this.currentStep = 1;
@@ -349,7 +350,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         if (response.success) {
           this.successMessage = 'Verificación completada';
-          this.router.navigate(['/voting/instructions']);
+          // Nuevo flujo: ir directo a votación
+          this.router.navigate(['/voting/ballot']);
         } else {
           this.errorMessage = response.message || 'Verificación facial fallida. Intente tomar otra foto.';
           this.capturedImage = ''; // Limpiar para permitir reintentar
