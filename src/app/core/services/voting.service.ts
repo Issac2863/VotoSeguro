@@ -43,20 +43,20 @@ export class VotingService {
      * Registrar un voto
      */
     castVote(dto: CastVoteDto): Observable<CastVoteResponse> {
-        return this.http.post<CastVoteResponse>(`${this.apiUrl}/cast`, dto);
+        return this.http.post<CastVoteResponse>(`${this.apiUrl}/cast`, dto, { withCredentials: true });
     }
 
     /**
      * Obtener resultados de una elección
      */
     getResults(electionId: string): Observable<ElectionResults> {
-        return this.http.get<ElectionResults>(`${this.apiUrl}/results/${electionId}`);
+        return this.http.get<ElectionResults>(`${this.apiUrl}/results/${electionId}`, { withCredentials: true });
     }
 
     /**
      * Verificar si el usuario ya votó
      */
     checkVote(token: string, electionId: string): Observable<{ hasVoted: boolean }> {
-        return this.http.post<{ hasVoted: boolean }>(`${this.apiUrl}/check`, { token, electionId });
+        return this.http.post<{ hasVoted: boolean }>(`${this.apiUrl}/check`, { token, electionId }, { withCredentials: true });
     }
 }
