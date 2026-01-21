@@ -70,6 +70,30 @@
                     </svg>
                 </div>
             </div>
+
+            <!-- Opción Voto Nulo -->
+            <div class="candidate-card null-vote" [class.selected]="selectedCandidate === -2"
+                (click)="selectCandidate(-2)">
+
+                <div class="candidate-photo null">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                </div>
+
+                <div class="candidate-info">
+                    <span class="candidate-number">Opción</span>
+                    <h3 class="candidate-name">Voto Nulo</h3>
+                    <p class="candidate-party">Anulación</p>
+                </div>
+
+                <div class="selection-indicator">
+                    <svg *ngIf="selectedCandidate === -2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                </div>
+            </div>
         </div>
 
         <!-- Timestamps y acciones -->

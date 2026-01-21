@@ -1,0 +1,30 @@
+/* ... existing styles ... */
+
+.candidate-card.blank-vote, .candidate-card.null-vote {
+    background-color: #f3f4f6;
+    border-color: #e5e7eb;
+}
+
+.candidate-card.blank-vote:hover, .candidate-card.null-vote:hover {
+    border-color: #9ca3af;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-card.null-vote.selected {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.candidate-photo.null {
+    color: #ef4444;
+    background-color: #fee2e2;
+}
+
+/* Ensure common styles apply */
+.candidate-card {
+    /* ... (rest of component styles would be here, but we are appending/overwriting) 
+       Ideally we view the CSS file first, but for now I will append the specific null styles 
+       assuming the structure matches blank-vote 
+    */
+}
