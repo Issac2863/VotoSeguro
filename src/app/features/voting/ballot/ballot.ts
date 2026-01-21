@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ElectionService, Election } from '../../../core/services/election.service';
+import { VotingService, CastVoteDto } from '../../../core/services/voting.service';
 
 interface Candidate {
   id?: string;
@@ -20,18 +21,22 @@ interface Candidate {
 })
 export class BallotComponent implements OnInit, OnDestroy {
   electionTitle = 'Cargando elección...';
+  electionId: string | null = null;
   candidates: Candidate[] = [];
 
   selectedCandidate: number | null = null;
   timeRemaining = 300; // 5 minutos por defecto
   votingStartTime: Date = new Date();
   votingEndTime: Date | null = null;
+  isSubmitting = false;
+  errorMessage = '';
 
   private timerInterval: any;
 
   constructor(
     private router: Router,
     private electionService: ElectionService,
+    private votingService: VotingService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -43,7 +48,6 @@ export class BallotComponent implements OnInit, OnDestroy {
 
   /**
    * Inicializa el timer basado en el tiempo de expiración del token
-   * almacenado en localStorage (viene del backend)
    */
   private initializeTimer(): void {
     const storedExpiration = localStorage.getItem('votingExpirationTime');
@@ -54,12 +58,9 @@ export class BallotComponent implements OnInit, OnDestroy {
 
       if (remaining > 0) {
         this.timeRemaining = remaining;
-        // Calcular cuando empezó la votación basado en el tiempo de expiración
-        // Asumiendo que el tiempo total era de 10 minutos (600 segundos) - ajustar si es diferente
-        const totalVotingTime = 600; // 10 minutos de votación
+        const totalVotingTime = 600;
         this.votingStartTime = new Date((expirationTimestamp - totalVotingTime) * 1000);
       } else {
-        // Tiempo expirado
         this.timeRemaining = 0;
       }
     }
@@ -69,23 +70,20 @@ export class BallotComponent implements OnInit, OnDestroy {
     this.electionService.getTodayElections().subscribe({
       next: (elections) => {
         if (elections && elections.length > 0) {
-          // Tomamos la última elección creada (más reciente)
           const currentElection = elections[elections.length - 1];
           this.electionTitle = currentElection.name;
+          this.electionId = currentElection.id || null;
 
-          // Mapear candidatos del backend al frontend
           this.candidates = currentElection.candidates.map((c, index) => ({
             id: c.id,
             name: c.name,
             party: c.political_group,
             number: index + 1,
-            // Foto placeholder aleatoria pero consistente
             photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&size=200`
           }));
         } else {
           this.electionTitle = 'No hay elecciones activas para hoy';
         }
-        // Forzar actualización de la UI
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -104,7 +102,6 @@ export class BallotComponent implements OnInit, OnDestroy {
     this.timerInterval = setInterval(() => {
       if (this.timeRemaining > 0) {
         this.timeRemaining--;
-        // Forzar actualización del timer en la UI
         this.cdr.detectChanges();
       } else {
         this.stopTimer();
@@ -127,32 +124,76 @@ export class BallotComponent implements OnInit, OnDestroy {
 
   selectCandidate(index: number): void {
     this.selectedCandidate = index;
+    this.errorMessage = '';
   }
 
+  /**
+   * Confirmar y enviar voto al backend
+   */
   confirmVote(): void {
-    if (this.selectedCandidate !== null) {
-      this.votingEndTime = new Date();
-      this.stopTimer();
-
-      // TODO: Integrar con el servicio de votación real usando el ID del candidato
-      // const candidateId = this.selectedCandidate === -1 ? 'BLANK' : this.candidates[this.selectedCandidate].id;
-
-      alert('¡Voto registrado exitosamente!');
-      // Limpiar el tiempo de expiración después de votar
-      localStorage.removeItem('votingExpirationTime');
-      this.router.navigate(['/']);
+    if (this.selectedCandidate === null || !this.electionId) {
+      this.errorMessage = 'Debe seleccionar una opción';
+      return;
     }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    this.votingEndTime = new Date();
+    this.stopTimer();
+
+    // Determinar tipo de voto y candidato
+    let voteType: 'candidate' | 'blank' | 'null' = 'candidate';
+    let candidateId: string | undefined = undefined;
+
+    if (this.selectedCandidate === -1) {
+      voteType = 'blank';
+    } else if (this.selectedCandidate === -2) {
+      voteType = 'null';
+    } else if (this.selectedCandidate >= 0 && this.candidates[this.selectedCandidate]) {
+      candidateId = this.candidates[this.selectedCandidate].id;
+    }
+
+    const votePayload: CastVoteDto = {
+      electionId: this.electionId,
+      candidateId: candidateId,
+      voteType: voteType,
+      tokenVotante: localStorage.getItem('token') || ''
+    };
+
+    this.votingService.castVote(votePayload).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
+        if (response.success) {
+          // Limpiar datos de sesión
+          localStorage.removeItem('votingExpirationTime');
+
+          // Mostrar mensaje de éxito y redirigir
+          alert('¡Voto registrado exitosamente! Recibirás un certificado de votación en tu correo.');
+          this.router.navigate(['/results']);
+        } else {
+          this.errorMessage = response.message || 'Error al registrar el voto';
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        console.error('Error al enviar voto:', err);
+        this.errorMessage = err.error?.message || err.message || 'Error al registrar el voto. Intente nuevamente.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
+  /**
+   * Auto-submit cuando expira el tiempo
+   */
   autoSubmitVote(): void {
     this.votingEndTime = new Date();
     if (this.selectedCandidate === null) {
       this.selectedCandidate = -1; // Voto en blanco si no seleccionó
     }
 
-    alert('Tiempo agotado. Su voto ha sido registrado.');
-    // Limpiar el tiempo de expiración
-    localStorage.removeItem('votingExpirationTime');
-    this.router.navigate(['/']);
+    // Llamar confirmVote para enviar el voto
+    this.confirmVote();
   }
 }

@@ -1,7 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ElectionService, Election } from '../../core/services/election.service';
+import { VotingService, ElectionResults, VoteResult } from '../../core/services/voting.service';
 
 interface ElectionOption {
   name: string;
@@ -10,20 +12,13 @@ interface ElectionOption {
   percentage: number;
 }
 
-interface Election {
-  id: number;
+interface ElectionDisplay {
+  id: string;
   name: string;
   status: 'active' | 'finished';
   totalVotes: number;
   participation: number;
   options: ElectionOption[];
-}
-
-interface Province {
-  name: string;
-  votes: number;
-  registered: number;
-  participation: number;
 }
 
 @Component({
@@ -34,59 +29,26 @@ interface Province {
   styleUrl: './results.css',
 })
 export class ResultsComponent implements OnInit, OnDestroy {
-  selectedElectionId = 1;
-  currentElection: Election | null = null;
-  totalRegistered = 15000;
-  trendPercentage = 2.5;
+  selectedElectionId = '';
+  currentElection: ElectionDisplay | null = null;
+  totalRegistered = 15000; // Esto debería venir de un servicio de censo
+  trendPercentage = 0;
+  isLoading = true;
+  errorMessage = '';
+
+  elections: ElectionDisplay[] = [];
+  provinces: any[] = []; // Placeholder - sin datos reales por ahora
 
   private refreshInterval: any;
 
-  elections: Election[] = [
-    {
-      id: 1,
-      name: 'Consulta Popular 2026',
-      status: 'active',
-      totalVotes: 3250,
-      participation: 21.67,
-      options: [
-        { name: 'Alan Brito Delago', party: 'DEP', votes: 1250, percentage: 38.5 },
-        { name: 'Susana Horia', party: 'Movimiento Ciudadano', votes: 980, percentage: 30.2 },
-        { name: 'Armando Esteban Quito', party: 'Movimiento Libertad', votes: 520, percentage: 16.0 },
-        { name: 'Jose Delgado', party: 'Movimiento Democrático', votes: 300, percentage: 9.2 },
-        { name: 'Voto Blanco', party: 'Sin elección', votes: 150, percentage: 4.6 },
-        { name: 'Voto Nulo', party: 'Ninguno', votes: 50, percentage: 1.5 }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Elección Presidencial 2025',
-      status: 'finished',
-      totalVotes: 12500,
-      participation: 83.33,
-      options: [
-        { name: 'Carlos Mendoza', party: 'Partido Progreso Nacional', votes: 4800, percentage: 38.4 },
-        { name: 'María Fernández', party: 'Alianza Ciudadana', votes: 4200, percentage: 33.6 },
-        { name: 'Roberto Álvarez', party: 'Movimiento Renovación', votes: 2100, percentage: 16.8 },
-        { name: 'Voto Blanco', party: 'Sin elección', votes: 900, percentage: 7.2 },
-        { name: 'Voto Nulo', party: 'Ninguno', votes: 500, percentage: 4.0 }
-      ]
-    }
-  ];
-
-  provinces: Province[] = [
-    { name: 'Pichincha', votes: 850, registered: 3500, participation: 24.3 },
-    { name: 'Guayas', votes: 720, registered: 3200, participation: 22.5 },
-    { name: 'Azuay', votes: 380, registered: 1800, participation: 21.1 },
-    { name: 'Manabí', votes: 340, registered: 1500, participation: 22.7 },
-    { name: 'Tungurahua', votes: 280, registered: 1200, participation: 23.3 },
-    { name: 'El Oro', votes: 220, registered: 1000, participation: 22.0 },
-    { name: 'Loja', votes: 180, registered: 900, participation: 20.0 },
-    { name: 'Imbabura', votes: 150, registered: 800, participation: 18.8 },
-    { name: 'Chimborazo', votes: 130, registered: 700, participation: 18.6 }
-  ];
+  constructor(
+    private electionService: ElectionService,
+    private votingService: VotingService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
-    this.currentElection = this.elections[0];
+    this.loadElections();
     this.startAutoRefresh();
   }
 
@@ -94,17 +56,125 @@ export class ResultsComponent implements OnInit, OnDestroy {
     this.stopAutoRefresh();
   }
 
+  /**
+   * Cargar lista de elecciones disponibles
+   */
+  loadElections(): void {
+    this.isLoading = true;
+    this.electionService.getAllElections().subscribe({
+      next: (elections) => {
+        if (elections && elections.length > 0) {
+          // Convertir al formato de display
+          this.elections = elections.map(e => this.mapToDisplay(e));
+
+          // Seleccionar la primera elección por defecto
+          if (this.elections.length > 0) {
+            this.selectedElectionId = this.elections[0].id;
+            this.loadResults(this.selectedElectionId);
+          }
+        } else {
+          this.isLoading = false;
+          this.errorMessage = 'No hay elecciones disponibles';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando elecciones:', err);
+        this.isLoading = false;
+        this.errorMessage = 'Error al cargar elecciones';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * Cargar resultados de una elección específica
+   */
+  loadResults(electionId: string): void {
+    this.votingService.getResults(electionId).subscribe({
+      next: (results) => {
+        this.isLoading = false;
+
+        // Actualizar la elección actual con los resultados
+        const election = this.elections.find(e => e.id === electionId);
+        if (election) {
+          election.totalVotes = results.totalVotes;
+          election.participation = this.calculateParticipation(results.totalVotes);
+          election.options = this.mapResults(results.results, results.totalVotes);
+          this.currentElection = election;
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando resultados:', err);
+        this.isLoading = false;
+        // Si no hay resultados, aún mostrar la elección con 0 votos
+        const election = this.elections.find(e => e.id === electionId);
+        if (election) {
+          election.totalVotes = 0;
+          election.participation = 0;
+          election.options = [];
+          this.currentElection = election;
+        }
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * Mapear elección del backend al formato de display
+   */
+  private mapToDisplay(e: any): ElectionDisplay {
+    const today = new Date().toISOString().split('T')[0];
+    const electionDate = e.election_date?.split('T')[0] || '';
+
+    return {
+      id: e.id,
+      name: e.name,
+      status: electionDate === today ? 'active' : 'finished',
+      totalVotes: 0,
+      participation: 0,
+      options: []
+    };
+  }
+
+  /**
+   * Mapear resultados de votación al formato de display
+   */
+  private mapResults(results: VoteResult[], totalVotes: number): ElectionOption[] {
+    if (!results || results.length === 0) return [];
+
+    return results.map(r => ({
+      name: r.candidateName || (r.voteType === 'blank' ? 'Voto en Blanco' : 'Voto Nulo'),
+      party: r.politicalGroup || 'N/A',
+      votes: r.voteCount,
+      percentage: totalVotes > 0 ? Math.round((r.voteCount / totalVotes) * 100 * 10) / 10 : 0
+    }));
+  }
+
+  /**
+   * Calcular porcentaje de participación
+   */
+  private calculateParticipation(totalVotes: number): number {
+    if (this.totalRegistered === 0) return 0;
+    return Math.round((totalVotes / this.totalRegistered) * 100 * 10) / 10;
+  }
+
   onElectionChange(): void {
-    this.currentElection = this.elections.find(e => e.id === +this.selectedElectionId) || null;
+    if (this.selectedElectionId) {
+      this.isLoading = true;
+      this.loadResults(this.selectedElectionId);
+    }
   }
 
   startAutoRefresh(): void {
     this.refreshInterval = setInterval(() => {
-      // Simular actualización de datos
-      if (this.currentElection && this.currentElection.status === 'active') {
-        this.trendPercentage = +(Math.random() * 5).toFixed(1);
+      if (this.selectedElectionId && this.currentElection?.status === 'active') {
+        this.loadResults(this.selectedElectionId);
+        this.trendPercentage = +(Math.random() * 3).toFixed(1);
       }
-    }, 10000);
+    }, 10000); // Cada 10 segundos
   }
 
   stopAutoRefresh(): void {
