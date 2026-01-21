@@ -22,6 +22,11 @@ export const routes: Routes = [
     // Rutas de administración
     { path: 'admin/login', component: AdminLoginComponent },
     { path: 'admin/dashboard', component: DashboardComponent, canActivate: [adminGuard] },
+    {
+        path: 'admin/create-election',
+        loadComponent: () => import('./features/admin/create-election/create-election.component').then(m => m.CreateElectionComponent),
+        canActivate: [adminGuard]
+    },
     { path: 'admin/results', component: ResultsComponent },
     { path: 'admin-dashboard', redirectTo: 'admin/dashboard' },
     { path: '**', redirectTo: '' }
