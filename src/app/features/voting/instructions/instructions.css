@@ -99,6 +99,54 @@
     line-height: 1.5;
 }
 
+/* Warning box - Critical */
+.warning-box {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: #fef2f2;
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    margin: 1.5rem 0;
+    align-items: flex-start;
+}
+
+.warning-box.critical {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+.warning-icon {
+    flex-shrink: 0;
+}
+
+.warning-icon svg {
+    width: 32px;
+    height: 32px;
+    color: #dc2626;
+}
+
+.warning-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #dc2626;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.warning-content p {
+    margin: 0 0 0.5rem 0;
+    color: #7f1d1d;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.warning-content p:last-child {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    color: #991b1b;
+}
+
 /* Instruction items */
 .instruction-item {
     display: flex;
