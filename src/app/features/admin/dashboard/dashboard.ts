@@ -74,8 +74,8 @@ export class DashboardComponent implements OnInit {
 
   loadElections() {
     this.electionService.getAllElections().subscribe({
-      next: (data) => {
-        this.elections = data.map(e => {
+      next: (data: any[]) => {
+        this.elections = data.map((e: any) => {
           const electionDate = new Date(e.election_date);
           const today = new Date();
           // Resetear horas para comparar solo fechas
@@ -111,7 +111,7 @@ export class DashboardComponent implements OnInit {
         // Calcular stats generales (mock por ahora)
         this.totalVotes = this.elections.reduce((acc, curr) => acc + curr.totalVotes, 0);
       },
-      error: (err) => console.error('Error cargando elecciones', err)
+      error: (err: any) => console.error('Error cargando elecciones', err)
     });
   }
 
