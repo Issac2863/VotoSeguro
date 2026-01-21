@@ -43,8 +43,8 @@ export class BallotComponent implements OnInit, OnDestroy {
     this.electionService.getTodayElections().subscribe({
       next: (elections) => {
         if (elections && elections.length > 0) {
-          // Tomamos la primera elección activa de hoy
-          const currentElection = elections[0];
+          // Tomamos la última elección creada (más reciente)
+          const currentElection = elections[elections.length - 1];
           this.electionTitle = currentElection.name;
 
           // Mapear candidatos del backend al frontend
