@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ElectionService, Election } from '../../../core/services/election.service';
@@ -31,7 +31,8 @@ export class BallotComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private electionService: ElectionService
+    private electionService: ElectionService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -59,10 +60,13 @@ export class BallotComponent implements OnInit, OnDestroy {
         } else {
           this.electionTitle = 'No hay elecciones activas para hoy';
         }
+        // Forzar actualización de la UI
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error cargando elecciones:', err);
         this.electionTitle = 'Error al cargar la elección';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -75,6 +79,8 @@ export class BallotComponent implements OnInit, OnDestroy {
     this.timerInterval = setInterval(() => {
       if (this.timeRemaining > 0) {
         this.timeRemaining--;
+        // Forzar actualización del timer en la UI
+        this.cdr.detectChanges();
       } else {
         this.stopTimer();
         this.autoSubmitVote();
