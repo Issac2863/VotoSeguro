@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ElectionService } from '../../../core/services/election.service';
+import { AuthService } from '../../../core/services/auth';
 
 interface ElectionOption {
   name: string;
@@ -56,7 +57,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private electionService: ElectionService
+    private electionService: ElectionService,
+    private authService: AuthService
   ) {
     this.electionForm = this.fb.group({
       name: [''],
@@ -139,7 +141,15 @@ export class DashboardComponent implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('admin_token');
-    this.router.navigate(['/admin/login']);
+    this.authService.logoutAdmin().subscribe({
+      next: () => {
+        console.log('Logout exitoso');
+        this.router.navigate(['/admin/login']);
+      },
+      error: () => {
+        console.log('Error en logout, pero redirigiendo...');
+        this.router.navigate(['/admin/login']);
+      }
+    });
   }
 }

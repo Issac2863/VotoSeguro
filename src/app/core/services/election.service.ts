@@ -31,14 +31,14 @@ export class ElectionService {
     constructor(private http: HttpClient) { }
 
     createElection(data: CreateElectionDto): Observable<any> {
-        return this.http.post(`${this.apiUrl}/create`, data);
+        return this.http.post(`${this.apiUrl}/create`, data, { withCredentials: true });
     }
 
     getTodayElections(): Observable<Election[]> {
-        return this.http.get<Election[]>(`${this.apiUrl}/candidates`); // Gateway maps 'candidates' to 'today'
+        return this.http.get<Election[]>(`${this.apiUrl}/candidates`, { withCredentials: true }); // Gateway maps 'candidates' to 'today'
     }
 
     getAllElections(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/all`);
+        return this.http.get<any[]>(`${this.apiUrl}/all`, { withCredentials: true });
     }
 }

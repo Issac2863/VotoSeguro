@@ -18,140 +18,153 @@
 
   <!-- Main Content -->
   <main class="results-content">
-    <div class="results-title-section">
-      <h1>Centro de Resultados Electorales</h1>
-      <div class="live-indicator">
-        <span class="live-dot"></span>
-        EN VIVO - Actualizando cada 10 segundos
-      </div>
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Cargando resultados en tiempo real...</p>
     </div>
 
-    <!-- Election Selector -->
-    <div class="election-selector">
-      <label>Seleccionar Elección:</label>
-      <select [(ngModel)]="selectedElectionId" (change)="onElectionChange()">
-        <option *ngFor="let election of elections" [value]="election.id">
-          {{ election.name }} ({{ election.status === 'active' ? 'Activa' : 'Finalizada' }})
-        </option>
-      </select>
+    <!-- Error State -->
+    <div class="error-container" *ngIf="errorMessage && !isLoading">
+      <div class="error-icon">⚠️</div>
+      <h3>Error al cargar resultados</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn btn-primary" (click)="refreshResults()">
+        Intentar de nuevo
+      </button>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid" *ngIf="currentElection">
-      <div class="stat-card blue">
-        <div class="stat-title">TOTAL DE VOTOS</div>
-        <div class="stat-value">{{ currentElection.totalVotes | number }}</div>
-        <div class="stat-label">Votos contabilizados</div>
-      </div>
-      <div class="stat-card yellow">
-        <div class="stat-title">PARTICIPACIÓN</div>
-        <div class="stat-value">{{ currentElection.participation }}%</div>
-        <div class="stat-label">{{ currentElection.totalVotes }} de {{ totalRegistered }} votantes</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-title">TENDENCIA</div>
-        <div class="stat-value trend-up">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-          </svg>
-          +{{ trendPercentage }}%
+    <!-- Results Content -->
+    <div *ngIf="!isLoading && !errorMessage && currentElection">
+      <div class="results-title-section">
+        <h1>{{ currentElection.name }}</h1>
+        <div class="live-indicator" *ngIf="currentElection.status === 'active'">
+          <span class="live-dot"></span>
+          EN VIVO - Actualización automática cada 30 segundos
         </div>
-        <div class="stat-label">vs hora anterior</div>
-      </div>
-    </div>
-
-    <!-- Vote Distribution -->
-    <div class="results-section" *ngIf="currentElection">
-      <div class="section-header">
-        <h2>Distribución de Votos</h2>
-        <div class="live-badge">
-          <span class="live-dot small"></span>
-          Actualización en vivo
+        <div class="election-status finished" *ngIf="currentElection.status === 'finished'">
+          <span class="status-dot"></span>
+          ELECCIÓN FINALIZADA
         </div>
       </div>
 
-      <div class="candidates-results">
-        <div class="candidate-result" *ngFor="let candidate of currentElection.options; let i = index">
-          <div class="candidate-info">
-            <span class="candidate-name">
-              {{ candidate.name }}
-              <span class="leader-badge" *ngIf="i === 0 && candidate.percentage > 0">Líder</span>
-            </span>
-            <span class="candidate-party">{{ candidate.party }}</span>
-          </div>
-          <div class="candidate-stats">
-            <span class="candidate-percentage">{{ candidate.percentage }}%</span>
-            <span class="candidate-votes">{{ candidate.votes | number }} votos</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="candidate.percentage" 
-              [class.leader]="i === 0 && candidate.percentage > 0"></div>
-          </div>
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-title">TOTAL DE VOTOS</div>
+          <div class="stat-value">{{ formatNumber(currentElection.totalVotes) }}</div>
+          <div class="stat-label">Votos registrados en blockchain</div>
         </div>
-      </div>
-    </div>
-
-    <!-- Results by Province -->
-    <div class="results-section">
-      <h2>Participación por Provincia</h2>
-      
-      <div class="province-grid">
-        <div class="province-card" *ngFor="let province of provinces">
-          <div class="province-header">
-            <span class="province-name">{{ province.name }}</span>
-            <span class="province-percentage">{{ province.participation }}%</span>
-          </div>
-          <div class="province-bar">
-            <div class="province-fill" [style.width.%]="province.participation"></div>
-          </div>
-          <div class="province-stats">
-            <span>{{ province.votes | number }} votos</span>
-            <span>de {{ province.registered | number }}</span>
-          </div>
+        <div class="stat-card yellow">
+          <div class="stat-title">PARTICIPACIÓN</div>
+          <div class="stat-value">{{ currentElection.participation }}%</div>
+          <div class="stat-label">{{ formatNumber(currentElection.totalVotes) }} de {{ formatNumber(totalRegistered) }} votantes</div>
         </div>
-      </div>
-
-      <div class="no-data" *ngIf="provinces.length === 0">
-        No hay votos por provincia disponibles
-      </div>
-    </div>
-
-    <!-- National Summary -->
-    <div class="results-section national-summary">
-      <h2>Resumen Nacional</h2>
-      <div class="summary-grid">
-        <div class="summary-item">
-          <div class="summary-icon">
+        <div class="stat-card green" *ngIf="currentElection.status === 'active'">
+          <div class="stat-title">TENDENCIA</div>
+          <div class="stat-value trend-up">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
             </svg>
+            +{{ trendPercentage }}%
           </div>
-          <div class="summary-content">
-            <span class="summary-value">24</span>
-            <span class="summary-label">Provincias</span>
-          </div>
+          <div class="stat-label">vs actualización anterior</div>
         </div>
-        <div class="summary-item">
-          <div class="summary-icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-            </svg>
-          </div>
-          <div class="summary-content">
-            <span class="summary-value">{{ totalRegistered | number }}</span>
-            <span class="summary-label">Electores Registrados</span>
-          </div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-icon green">
+        <div class="stat-card purple" *ngIf="currentElection.status === 'finished'">
+          <div class="stat-title">ESTADO</div>
+          <div class="stat-value">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
+            FINAL
           </div>
-          <div class="summary-content">
-            <span class="summary-value">{{ currentElection?.totalVotes | number }}</span>
-            <span class="summary-label">Votos Emitidos</span>
+          <div class="stat-label">Resultados oficiales</div>
+        </div>
+      </div>
+
+      <!-- Vote Distribution -->
+      <div class="results-section">
+        <div class="section-header">
+          <h2>Distribución de Votos</h2>
+          <div class="live-badge" *ngIf="currentElection.status === 'active'">
+            <span class="live-dot small"></span>
+            Actualización en vivo
+          </div>
+          <button class="btn btn-outline refresh-btn" (click)="refreshResults()" [disabled]="isLoading">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            {{ isLoading ? 'Actualizando...' : 'Actualizar' }}
+          </button>
+        </div>
+
+        <div class="candidates-results" *ngIf="currentElection.options.length > 0">
+          <div class="candidate-result" *ngFor="let candidate of currentElection.options; let i = index">
+            <div class="candidate-info">
+              <span class="candidate-name">
+                {{ candidate.name }}
+                <span class="leader-badge" *ngIf="i === 0 && candidate.percentage > 0">🏆 Líder</span>
+              </span>
+              <span class="candidate-party">{{ candidate.party }}</span>
+            </div>
+            <div class="candidate-stats">
+              <span class="candidate-percentage">{{ candidate.percentage }}%</span>
+              <span class="candidate-votes">{{ formatNumber(candidate.votes) }} votos</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" 
+                [style.width.%]="candidate.percentage"
+                [style.background-color]="getProgressBarColor(candidate.percentage)"
+                [class.leader]="i === 0 && candidate.percentage > 0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-votes" *ngIf="currentElection.options.length === 0">
+          <div class="no-votes-icon">🗳️</div>
+          <h3>Aún no hay votos registrados</h3>
+          <p>Los resultados aparecerán aquí en tiempo real conforme se registren los votos.</p>
+        </div>
+      </div>
+
+      <!-- Blockchain Information -->
+      <div class="results-section blockchain-info">
+        <h2>Información de Transparencia</h2>
+        <div class="blockchain-grid">
+          <div class="blockchain-item">
+            <div class="blockchain-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <div class="blockchain-content">
+              <span class="blockchain-value">100%</span>
+              <span class="blockchain-label">Seguridad Blockchain</span>
+            </div>
+          </div>
+          <div class="blockchain-item">
+            <div class="blockchain-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </div>
+            <div class="blockchain-content">
+              <span class="blockchain-value">Pública</span>
+              <span class="blockchain-label">Transparencia Total</span>
+            </div>
+          </div>
+          <div class="blockchain-item">
+            <div class="blockchain-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+            <div class="blockchain-content">
+              <span class="blockchain-value">Inmutable</span>
+              <span class="blockchain-label">Votos Protegidos</span>
+            </div>
           </div>
         </div>
       </div>

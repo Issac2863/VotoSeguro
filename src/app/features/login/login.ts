@@ -120,20 +120,18 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     const { documentNumber, fingerprintCode } = this.credentialsForm.value;
 
-
-
     this.authService.validateCredentials(documentNumber, fingerprintCode).subscribe({
       next: (response) => {
-
         this.isLoading = false;
         if (response.success) {
           this.successMessage = response.message;
           this.maskedEmail = response.email || this.authService.getMaskedEmail();
 
-          // El OTP se envía automáticamente con la validación de credenciales
+          // El OTP se envía automáticamente con la validación de credenciales en el backend
+          // Por lo tanto, marcamos que el código fue enviado y avanzamos al paso 2
           this.codeSent = true;
           this.currentStep = 2;
-          this.cdr.detectChanges(); // Forzar actualización de UI
+          this.cdr.detectChanges();
         } else {
           this.errorMessage = response.message || 'Credenciales inválidas';
         }
@@ -147,7 +145,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Paso 2: Enviar código OTP
+   * Paso 2: Reenviar código OTP (función opcional)
    */
   sendCode(): void {
     this.isLoading = true;
@@ -159,13 +157,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.isLoading = false;
         this.codeSent = true;
-        this.successMessage = 'Código enviado a tu correo electrónico';
-        this.cdr.detectChanges(); // Forzar actualización de UI
+        this.successMessage = 'Código reenviado a tu correo electrónico';
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Error al enviar el código';
-        this.cdr.detectChanges(); // Forzar actualización de UI
+        this.errorMessage = error.message || 'Error al reenviar el código';
+        this.cdr.detectChanges();
       }
     });
   }

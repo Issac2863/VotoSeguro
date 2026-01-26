@@ -50,7 +50,7 @@ export class BallotComponent implements OnInit, OnDestroy {
    * Inicializa el timer basado en el tiempo de expiración del token
    */
   private initializeTimer(): void {
-    const storedExpiration = localStorage.getItem('votingExpirationTime');
+    const storedExpiration = sessionStorage.getItem('votingExpirationTime');
     if (storedExpiration) {
       const expirationTimestamp = parseInt(storedExpiration, 10);
       const nowInSeconds = Math.floor(Date.now() / 1000);
@@ -157,7 +157,7 @@ export class BallotComponent implements OnInit, OnDestroy {
       electionId: this.electionId,
       candidateId: candidateId,
       voteType: voteType,
-      tokenVotante: localStorage.getItem('token') || ''
+      tokenVotante: 'cookie-based-auth' // Ya no enviamos token, se usa cookie httpOnly
     };
 
     this.votingService.castVote(votePayload).subscribe({
@@ -165,7 +165,7 @@ export class BallotComponent implements OnInit, OnDestroy {
         this.isSubmitting = false;
         if (response.success) {
           // Limpiar datos de sesión
-          localStorage.removeItem('votingExpirationTime');
+          sessionStorage.removeItem('votingExpirationTime');
 
           // Mostrar mensaje de éxito y redirigir
           alert('¡Voto registrado exitosamente! Recibirás un certificado de votación en tu correo.');

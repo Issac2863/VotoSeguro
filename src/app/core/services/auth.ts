@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
 import { tap, catchError, map, delay } from 'rxjs/operators';
 import { environment } from '../config/environment';
+import { CookieService } from './cookie.service';
 
 export interface AuthSession {
   sessionId: string;
@@ -39,7 +40,10 @@ export class AuthService {
   private sessionSubject = new BehaviorSubject<AuthSession | null>(null);
   public session$ = this.sessionSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private cookieService: CookieService
+  ) {
     // Restaurar sesión si existe
     const savedSession = localStorage.getItem('authSession');
     if (savedSession) {
@@ -54,6 +58,8 @@ export class AuthService {
     return this.http.post<ValidateCredentialsResponse>(`${this.apiUrl}/auth/identity`, {
       cedula,
       codigoDactilar
+    }, {
+      withCredentials: true
     }).pipe(
       tap(response => {
         if (response.success) {
@@ -74,9 +80,11 @@ export class AuthService {
    * Paso 2: Enviar código OTP al email
    */
   sendOtp(cedula: string): Observable<any> {
-
-    return this.http.post<any>(`${this.apiUrl}/auth/send-otp`, { cedula }).pipe(
-
+    return this.http.post<any>(`${this.apiUrl}/auth/request-otp`, { 
+      id: cedula 
+    }, {
+      withCredentials: true
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -86,8 +94,10 @@ export class AuthService {
    */
   verifyOtp(cedula: string, otpCode: string): Observable<ValidateOtpResponse> {
     return this.http.post<ValidateOtpResponse>(`${this.apiUrl}/auth/otp`, {
-      cedula,
+      id: cedula,
       otpCode
+    }, {
+      withCredentials: true
     }).pipe(
       tap(response => {
         if (response.success) {
@@ -107,17 +117,19 @@ export class AuthService {
    */
   validateBiometric(cedula: string, imagenFacial: string): Observable<ValidateBiometricResponse> {
     return this.http.post<ValidateBiometricResponse>(`${this.apiUrl}/auth/biometrics`, {
-      cedula,
+      id: cedula,
       image: imagenFacial // Renombrado a 'image' según DTO del Gateway
+    }, {
+      withCredentials: true // Permite recepción de cookies
     }).pipe(
       tap(response => {
-        // Backend devuelve 'accessToken', verificamos ambas opciones por compatibilidad
-        const token = response.accessToken || response.token;
-        if (response.success && token) {
-          localStorage.setItem('token', token);
-          // Guardar tiempo de expiración para el timer de votación
+        if (response.success) {
+          // Ya no guardamos token en localStorage para cookies httpOnly
+          // El servidor configura automáticamente la cookie segura
+          console.log('✅ Autenticación biométrica exitosa - Cookie configurada por el servidor');
+          // Guardar tiempo de expiración en sessionStorage (no sensible)
           if (response.expirationTime) {
-            localStorage.setItem('votingExpirationTime', response.expirationTime.toString());
+            sessionStorage.setItem('votingExpirationTime', response.expirationTime.toString());
           }
           const currentSession = this.sessionSubject.value;
           if (currentSession) {
@@ -134,8 +146,9 @@ export class AuthService {
    * Cerrar sesión
    */
   logout(): void {
-    localStorage.removeItem('token');
     localStorage.removeItem('authSession');
+    sessionStorage.removeItem('votingExpirationTime');
+    this.cookieService.clearAuthCookies();
     this.sessionSubject.next(null);
   }
 
@@ -143,10 +156,14 @@ export class AuthService {
    * Login Administrador
    */
   adminLogin(credentials: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/auth/admin/login`, credentials).pipe(
+    return this.http.post<any>(`${this.apiUrl}/auth/admin/login`, credentials, {
+      withCredentials: true // Importante: permite envío/recepción de cookies
+    }).pipe(
       tap(response => {
-        if (response.success && response.token) {
-          localStorage.setItem('admin_token', response.token);
+        // Ya no guardamos token en localStorage
+        // Las cookies httpOnly se manejan automáticamente por el navegador
+        if (response.success) {
+          console.log('✅ Login administrativo exitoso - Cookie configurada por el servidor');
         }
       }),
       catchError(this.handleError)
@@ -155,16 +172,24 @@ export class AuthService {
 
   /**
    * Verificar si el usuario está autenticado
+   * Para cookies httpOnly, verificamos el estado de la sesión
    */
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    const session = this.sessionSubject.value;
+    return session?.step === 'complete';
   }
 
   /**
    * Verificar si es admin
+   * Para cookies httpOnly, necesitamos hacer una verificación con el servidor
    */
-  isAdminLoggedIn(): boolean {
-    return !!localStorage.getItem('admin_token');
+  isAdminLoggedIn(): Observable<boolean> {
+    return this.http.get<{authenticated: boolean}>(`${this.apiUrl}/auth/admin/verify`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.authenticated),
+      catchError(() => of(false))
+    );
   }
 
   /**
@@ -172,7 +197,7 @@ export class AuthService {
    */
   isAuthComplete(): boolean {
     const session = this.sessionSubject.value;
-    return session?.step === 'complete' && this.isLoggedIn();
+    return session?.step === 'complete';
   }
 
   /**
@@ -180,6 +205,54 @@ export class AuthService {
    */
   getCurrentStep(): string {
     return this.sessionSubject.value?.step || 'credentials';
+  }
+
+  /**
+   * Logout de administrador - limpia cookies y estado
+   */
+  logoutAdmin(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/admin/logout`, {}, {
+      withCredentials: true
+    }).pipe(
+      tap(() => {
+        // Limpiar estado local
+        this.cookieService.clearAuthCookies();
+        localStorage.removeItem('authSession');
+        this.sessionSubject.next(null);
+      }),
+      catchError(error => {
+        // Incluso si falla el servidor, limpiamos local
+        this.cookieService.clearAuthCookies();
+        localStorage.removeItem('authSession');
+        this.sessionSubject.next(null);
+        return of({ success: true, message: 'Logout local exitoso' });
+      })
+    );
+  }
+
+  /**
+   * Logout de votante - limpia cookies y estado
+   */
+  logoutVoter(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/voter/logout`, {}, {
+      withCredentials: true
+    }).pipe(
+      tap(() => {
+        // Limpiar estado local
+        this.cookieService.clearAuthCookies();
+        localStorage.removeItem('authSession');
+        sessionStorage.removeItem('votingExpirationTime');
+        this.sessionSubject.next(null);
+      }),
+      catchError(error => {
+        // Incluso si falla el servidor, limpiamos local
+        this.cookieService.clearAuthCookies();
+        localStorage.removeItem('authSession');
+        sessionStorage.removeItem('votingExpirationTime');
+        this.sessionSubject.next(null);
+        return of({ success: true, message: 'Logout local exitoso' });
+      })
+    );
   }
 
   /**

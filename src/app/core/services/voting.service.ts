@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface CastVoteDto {
@@ -24,11 +25,19 @@ export interface VoteResult {
     voteCount: number;
 }
 
+export interface BlockchainVoteResult {
+    idCandidato: string;
+    nombreCandidato: string;
+    tipoVoto: string;
+    conteoVotos: number;
+}
+
 export interface ElectionResults {
     electionId: string;
-    electionName: string;
+    electionName?: string;
     totalVotes: number;
-    results: VoteResult[];
+    votos: BlockchainVoteResult[]; // Estructura que viene del blockchain
+    results?: VoteResult[]; // Estructura procesada para compatibilidad
 }
 
 @Injectable({
@@ -47,10 +56,33 @@ export class VotingService {
     }
 
     /**
-     * Obtener resultados de una elección
+     * Obtener resultados de una elección desde el blockchain
      */
-    getResults(electionId: string): Observable<ElectionResults> {
-        return this.http.get<ElectionResults>(`${this.apiUrl}/results/${electionId}`, { withCredentials: true });
+    getResults(electionId?: string): Observable<ElectionResults> {
+        // Si no se especifica electionId, usar el endpoint general que trae la elección activa
+        const url = electionId ? `${this.apiUrl}/results/${electionId}` : `${this.apiUrl}/results`;
+        
+        return this.http.get<ElectionResults>(url, { withCredentials: true }).pipe(
+            map((data: any) => {
+                // Procesar los datos del blockchain para compatibilidad
+                const processedResults: VoteResult[] = data.votos?.map((vote: BlockchainVoteResult) => ({
+                    candidateId: vote.idCandidato,
+                    candidateName: vote.nombreCandidato,
+                    politicalGroup: vote.nombreCandidato, // Por ahora usar el nombre como grupo
+                    voteType: vote.tipoVoto,
+                    voteCount: vote.conteoVotos
+                })) || [];
+
+                const totalVotes = data.votos?.reduce((sum: number, vote: BlockchainVoteResult) => 
+                    sum + vote.conteoVotos, 0) || 0;
+
+                return {
+                    ...data,
+                    totalVotes,
+                    results: processedResults
+                };
+            })
+        );
     }
 
     /**
