@@ -25,6 +25,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
 
+  // Estados específicos de votación
+  votingStatus: 'active' | 'processing' | 'completed' | null = null;
+  showVotingStatusMessage = false;
+
   // OTP
   codeSent = false;
   verificationCode = '';
@@ -73,12 +77,16 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Limpiar cualquier sesión anterior al iniciar un nuevo proceso de votante
+    // (especialmente importante si había una sesión de admin)
+    this.authService.logout();
+    
     // Suscribirse a la sesión para restaurar el paso actual
     this.subscriptions.push(
       this.authService.session$.subscribe(session => {
-        if (session && session.step) {
+        if (session && session.step && !session.isAdmin) {
           this.maskedEmail = this.authService.getMaskedEmail();
-          // Restaurar paso si hay sesión válida
+          // Restaurar paso si hay sesión válida de VOTANTE
           switch (session.step) {
             case 'otp':
               this.currentStep = 2;
@@ -87,7 +95,7 @@ export class LoginComponent implements OnInit, OnDestroy {
               this.currentStep = 3;
               break;
             case 'complete':
-              // Nuevo flujo: después de autenticar ir directo a votación
+              // Solo redirigir si es una sesión de votante completa
               this.router.navigate(['/voting/ballot']);
               break;
             default:
@@ -122,6 +130,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.validateCredentials(documentNumber, fingerprintCode).subscribe({
       next: (response) => {
+        console.log('[LOGIN] validateCredentials response:', response);
         this.isLoading = false;
         if (response.success) {
           this.successMessage = response.message;
@@ -139,9 +148,95 @@ export class LoginComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('[LOGIN] Error:', error);
         this.isLoading = false;
-        this.errorMessage = error.message || 'Error al validar credenciales';
+        this.handleAuthenticationError(error);
       }
     });
+  }
+
+  /**
+   * Maneja errores específicos de autenticación según el estado del votante
+   */
+  private handleAuthenticationError(error: any): void {
+    // Desactivar estado de carga
+    this.isLoading = false;
+    
+    const errorMessage = error.message || 'Error desconocido';
+
+    // Limpiar estados anteriores
+    this.resetVotingStatus();
+
+    // Verificar diferentes estados del votante
+    if (errorMessage.includes('sesión de votación activa')) {
+      this.showVotingSessionActiveError();
+    } else if (errorMessage.includes('voto está siendo procesado')) {
+      this.showVoteProcessingError();
+    } else if (errorMessage.includes('ya ha registrado su voto')) {
+      this.showAlreadyVotedError();
+    } else if (errorMessage.includes('Credenciales inválidas')) {
+      this.errorMessage = 'Cédula o código dactilar incorrectos. Verifique sus datos.';
+    } else {
+      this.errorMessage = 'Error al validar credenciales. Intente nuevamente.';
+    }
+
+    // Forzar actualización de la vista
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Limpia todos los estados y mensajes de votación
+   */
+  private resetVotingStatus(): void {
+    this.votingStatus = null;
+    this.showVotingStatusMessage = false;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  /**
+   * Muestra mensaje cuando el usuario tiene una sesión activa
+   */
+  private showVotingSessionActiveError(): void {
+    this.votingStatus = 'active';
+    this.showVotingStatusMessage = true;
+    this.errorMessage = 'No puede iniciar una nueva sesión porque ya tiene una activa.';
+    this.successMessage = 'Espere a que expire su sesión actual o complete su proceso de votación.';
+    
+    // No mostrar alert ni redireccionar automáticamente
+    // Solo mostrar el mensaje informativo
+  }
+
+  /**
+   * Muestra mensaje cuando el voto está siendo procesado
+   */
+  private showVoteProcessingError(): void {
+    this.votingStatus = 'processing';
+    this.showVotingStatusMessage = true;
+    this.errorMessage = '⏳ Su voto está siendo procesado. Por favor espere.';
+    this.successMessage = '✅ El proceso se completará en unos momentos.';
+    
+    // Redirigir a resultados después de unos segundos
+    setTimeout(() => {
+      this.router.navigate(['/results']);
+    }, 4000);
+  }
+
+  /**
+   * Muestra mensaje cuando el usuario ya votó
+   */
+  private showAlreadyVotedError(): void {
+    this.votingStatus = 'completed';
+    this.showVotingStatusMessage = true;
+    this.errorMessage = '✅ Usted ya ha registrado su voto previamente.';
+    this.successMessage = '🗳️ Gracias por participar en el proceso electoral.';
+    
+    // Opción para ver resultados
+    setTimeout(() => {
+      if (confirm('¿Desea ver los resultados de la elección?')) {
+        this.router.navigate(['/results']);
+      } else {
+        this.router.navigate(['/']);
+      }
+    }, 4000);
   }
 
   /**
@@ -151,9 +246,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const cedula = this.credentialsForm.value.documentNumber;
-
-    this.authService.sendOtp(cedula).subscribe({
+    this.authService.sendOtp().subscribe({
       next: (response) => {
         this.isLoading = false;
         this.codeSent = true;
@@ -180,9 +273,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const cedula = this.credentialsForm.value.documentNumber;
-
-    this.authService.verifyOtp(cedula, this.verificationCode).subscribe({
+    this.authService.verifyOtp(this.verificationCode).subscribe({
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
@@ -341,9 +432,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const cedula = this.credentialsForm.value.documentNumber;
-
-    this.authService.validateBiometric(cedula, this.capturedImage).subscribe({
+    this.authService.validateBiometric(this.capturedImage).subscribe({
       next: (response) => {
         this.isLoading = false;
         if (response.success) {

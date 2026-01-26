@@ -1,4 +1,654 @@
-/* Estilos personalizados si son necesarios (Tailwind cubre la mayoría) */
+/* Estilos para el formulario de crear elección - Diseño moderno con fondo blanco */
 :host {
     display: block;
+    min-height: 100vh;
+    background: #f8fafc;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Contenedor principal */
+.min-h-screen {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background: #f8fafc;
+}
+
+.max-w-2xl {
+    max-width: 48rem; /* Aumentado de 42rem a 48rem */
+    margin: 0 auto;
+}
+
+/* Header styles */
+.text-center {
+    text-align: center;
+}
+
+.text-4xl {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.text-gray-600 {
+    color: #6b7280;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Card styles */
+.bg-white {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.rounded-2xl {
+    border-radius: 20px;
+}
+
+.shadow-xl {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Header card */
+.bg-gradient-to-r {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    padding: 2rem;
+}
+
+.text-2xl {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+/* Form container */
+.p-8 {
+    padding: 2.5rem;
+}
+
+/* Success/Error messages */
+.mb-6 {
+    margin-bottom: 1.5rem;
+}
+
+.p-4 {
+    padding: 1rem;
+}
+
+.bg-green-50 {
+    background-color: #f0fdf4;
+    border: 2px solid #22c55e;
+}
+
+.bg-red-50 {
+    background-color: #fef2f2;
+    border: 2px solid #ef4444;
+}
+
+.text-green-700 {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.text-red-700 {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.rounded-lg {
+    border-radius: 12px;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+/* Form styles */
+.space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.space-y-3 > * + * {
+    margin-top: 0.75rem;
+}
+
+.space-y-2 > * + * {
+    margin-top: 0.5rem;
+}
+
+/* Labels */
+.block {
+    display: block;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.font-semibold {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.font-medium {
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Input styles */
+.w-full {
+    width: 100%;
+}
+
+input[type="text"], 
+input[type="date"], 
+textarea {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #374151;
+    transition: all 0.3s ease;
+    background: white;
+    outline: none;
+}
+
+input[type="text"]:focus, 
+input[type="date"]:focus, 
+textarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+input[type="text"]:hover, 
+input[type="date"]:hover, 
+textarea:hover {
+    border-color: #9ca3af;
+}
+
+/* Validation errors */
+.text-red-500 {
+    color: #ef4444;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+    color: #ef4444;
+    margin-top: 0.25rem;
+}
+
+/* Candidates section */
+.pt-4 {
+    padding-top: 1rem;
+}
+
+.border-t {
+    border-top: 2px solid #f3f4f6;
+}
+
+.border-gray-200 {
+    border-color: #e5e7eb;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+/* Candidate cards */
+.bg-gray-50 {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.bg-gray-50:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+}
+
+/* Candidate number badge */
+.bg-gray-50 .absolute:first-child {
+    top: -12px;
+    left: -12px;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Grid layout for candidates */
+.grid {
+    display: grid;
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+    .md\\:grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Buttons */
+button {
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+}
+
+/* Add candidate button */
+.bg-green-600 {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+}
+
+.bg-green-600:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+/* Remove candidate button */
+.bg-red-500 {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.bg-red-500:hover {
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Form action buttons */
+.pt-6 {
+    padding-top: 2rem;
+    border-top: 2px solid #f3f4f6;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+/* Cancel button */
+.border-2 {
+    border: 2px solid #d1d5db;
+    background: white;
+    color: #6b7280;
+    padding: 1rem 2rem;
+}
+
+.border-2:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-2px);
+}
+
+/* Submit button */
+.bg-gradient-to-r.from-blue-600 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+}
+
+.bg-gradient-to-r.from-blue-600:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+}
+
+.bg-gradient-to-r.from-blue-600:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading spinner */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* SVG icons */
+svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.w-5 {
+    width: 1.25rem;
+}
+
+.h-5 {
+    height: 1.25rem;
+}
+
+.w-4 {
+    width: 1rem;
+}
+
+.h-4 {
+    height: 1rem;
+}
+
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+.mr-3 {
+    margin-right: 0.75rem;
+}
+
+/* Note section */
+.mt-6 {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.text-gray-500 {
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Tabla de candidatos */
+.candidates-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.candidates-table th {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.candidates-table th:last-child {
+    border-right: none;
+}
+
+.candidates-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+    vertical-align: middle;
+    background: white;
+}
+
+.candidates-table td:last-child {
+    border-right: none;
+}
+
+.candidates-table tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+.candidates-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+}
+
+.candidates-table tbody tr:hover {
+    background: #f0f9ff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.candidates-table tbody tr:hover td {
+    background: #f0f9ff;
+}
+
+.candidates-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.candidate-number {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.candidate-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.candidate-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+    background: #fefefe;
+}
+
+.candidate-input:hover {
+    border-color: #94a3b8;
+}
+
+.remove-candidate-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.remove-candidate-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Distribución de columnas mejorada */
+.candidates-table th:nth-child(1),
+.candidates-table td:nth-child(1) {
+    width: 60px;
+    text-align: center;
+}
+
+.candidates-table th:nth-child(2),
+.candidates-table td:nth-child(2) {
+    width: 40%;
+}
+
+.candidates-table th:nth-child(3),
+.candidates-table td:nth-child(3) {
+    width: 40%;
+}
+
+.candidates-table th:nth-child(4),
+.candidates-table td:nth-child(4) {
+    width: 80px;
+    text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+    .p-8 {
+        padding: 1.5rem;
+    }
+    
+    .text-4xl {
+        font-size: 2rem;
+    }
+    
+    .bg-gradient-to-r {
+        padding: 1.5rem;
+    }
+    
+    .max-w-2xl {
+        max-width: 95%;
+        margin: 0 auto;
+    }
+    
+    .candidates-table {
+        font-size: 0.75rem;
+    }
+    
+    .candidates-table th,
+    .candidates-table td {
+        padding: 0.5rem 0.375rem;
+    }
+    
+    .candidate-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .candidate-input {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .remove-candidate-btn {
+        width: 24px;
+        height: 24px;
+    }
+    
+    /* Ocultar texto de columnas en móvil y mostrar solo íconos */
+    .candidates-table th:nth-child(2)::after {
+        content: "Nombre";
+    }
+    
+    .candidates-table th:nth-child(3)::after {
+        content: "Partido";
+    }
+}
+
+/* Form validation states */
+input.ng-invalid.ng-touched {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+input.ng-valid.ng-touched {
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.bg-white {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Enhanced focus states */
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+input:focus {
+    outline: none;
+}
+
+/* Hover effects for the entire form */
+:host:hover .bg-white {
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface CastVoteDto {
@@ -12,9 +12,10 @@ export interface CastVoteDto {
 }
 
 export interface CastVoteResponse {
-    success: boolean;
+    success?: boolean;
     message: string;
     voteId?: string;
+    status?: string;
 }
 
 export interface VoteResult {
@@ -49,38 +50,51 @@ export class VotingService {
     constructor(private http: HttpClient) { }
 
     /**
-     * Registrar un voto
+     * Registrar un voto (intención)
      */
-    castVote(dto: CastVoteDto): Observable<CastVoteResponse> {
-        return this.http.post<CastVoteResponse>(`${this.apiUrl}/cast`, dto, { withCredentials: true });
+    castVote(candidateId: string): Observable<CastVoteResponse> {
+        // El backend solo espera { candidateId: string }
+        const payload = { candidateId };
+        
+        return this.http.post<CastVoteResponse>(`${this.apiUrl}/cast`, payload, { 
+            withCredentials: true 
+        }).pipe(
+            tap(response => {
+            }),
+            catchError(error => {
+                console.error('❌ [DEBUG] VotingService.castVote - Error:', {
+                    status: error.status,
+                    message: error.message,
+                    url: error.url,
+                    withCredentials: 'activado'
+                });
+                throw error;
+            })
+        );
     }
 
     /**
-     * Obtener resultados de una elección desde el blockchain
+     * Confirmar definitivamente el voto
      */
-    getResults(electionId?: string): Observable<ElectionResults> {
+    confirmVote(candidateId: string): Observable<CastVoteResponse> {
+        // El backend solo espera { candidateId: string }
+        const payload = { candidateId };
+        return this.http.post<CastVoteResponse>(`${this.apiUrl}/confirm`, payload, { withCredentials: true });
+    }
+
+    /**
+     * Obtener resultados de una elección desde el backend
+     */
+    getResults(electionId?: string): Observable<any> {
         // Si no se especifica electionId, usar el endpoint general que trae la elección activa
         const url = electionId ? `${this.apiUrl}/results/${electionId}` : `${this.apiUrl}/results`;
         
-        return this.http.get<ElectionResults>(url, { withCredentials: true }).pipe(
-            map((data: any) => {
-                // Procesar los datos del blockchain para compatibilidad
-                const processedResults: VoteResult[] = data.votos?.map((vote: BlockchainVoteResult) => ({
-                    candidateId: vote.idCandidato,
-                    candidateName: vote.nombreCandidato,
-                    politicalGroup: vote.nombreCandidato, // Por ahora usar el nombre como grupo
-                    voteType: vote.tipoVoto,
-                    voteCount: vote.conteoVotos
-                })) || [];
-
-                const totalVotes = data.votos?.reduce((sum: number, vote: BlockchainVoteResult) => 
-                    sum + vote.conteoVotos, 0) || 0;
-
-                return {
-                    ...data,
-                    totalVotes,
-                    results: processedResults
-                };
+        return this.http.get<any>(url, { withCredentials: true }).pipe(
+            tap(response => {
+            }),
+            catchError(error => {
+                console.error('❌ [DEBUG] VotingService.getResults - Error:', error);
+                throw error;
             })
         );
     }

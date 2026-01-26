@@ -8,19 +8,17 @@ export const adminGuard: CanActivateFn = (route, state) => {
     const authService = inject(AuthService);
     const router = inject(Router);
 
-    // Como isAdminLoggedIn ahora retorna Observable, necesitamos manejarlo
     return authService.isAdminLoggedIn().pipe(
         map(isAuthenticated => {
             if (isAuthenticated) {
                 return true;
             } else {
-                // Redirigir al login de admin si no está autenticado
                 router.navigate(['/admin/login']);
                 return false;
             }
         }),
-        catchError(() => {
-            // En caso de error, redirigir al login
+        catchError((error) => {
+            console.error('AdminGuard - Error:', error);
             router.navigate(['/admin/login']);
             return of(false);
         })

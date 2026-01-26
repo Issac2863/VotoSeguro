@@ -46,13 +46,20 @@ export class AdminLoginComponent {
       };
 
       this.authService.adminLogin(credentials).subscribe({
-        next: () => {
+        next: (response) => {
           this.isLoading = false;
-          this.router.navigate(['/admin/dashboard']);
+          
+          if (response && response.success) {
+            this.router.navigate(['/admin/dashboard']);
+          } else {
+            this.errorMessage = response?.message || 'Respuesta inesperada del servidor';
+            console.error('Login fallido:', response);
+          }
         },
         error: (err) => {
           this.isLoading = false;
           this.errorMessage = err.message || 'Error al iniciar sesión';
+          console.error('Error en login:', err);
           alert(this.errorMessage);
         }
       });

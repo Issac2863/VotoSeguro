@@ -16,7 +16,27 @@ export interface Election {
     candidates: Candidate[];
 }
 
+// DTO para crear elección (coincide con el backend)
 export interface CreateElectionDto {
+    name: string;
+    description?: string;
+    election_date: string;
+}
+
+// DTO completo para crear elección con candidatos (estructura exacta del backend)
+export interface CreateElectionWithCandidatesDto {
+    nameElection: string;
+    election_date: string;
+    candidatos: CandidateBackendDto[];
+}
+
+export interface CandidateBackendDto {
+    name: string;
+    political_group: string;
+}
+
+// DTO legacy mantenido por compatibilidad
+export interface CreateElectionLegacyDto {
     nameElection: string;
     election_date: string;
     candidatos: Candidate[];
@@ -34,8 +54,12 @@ export class ElectionService {
         return this.http.post(`${this.apiUrl}/create`, data, { withCredentials: true });
     }
 
+    createElectionWithCandidates(data: CreateElectionWithCandidatesDto): Observable<any> {
+        return this.http.post(`${this.apiUrl}/create`, data, { withCredentials: true });
+    }
+
     getTodayElections(): Observable<Election[]> {
-        return this.http.get<Election[]>(`${this.apiUrl}/candidates`, { withCredentials: true }); // Gateway maps 'candidates' to 'today'
+        return this.http.get<Election[]>(`${this.apiUrl}/candidates`, { withCredentials: true });
     }
 
     getAllElections(): Observable<any[]> {

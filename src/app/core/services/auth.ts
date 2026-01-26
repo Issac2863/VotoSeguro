@@ -8,13 +8,17 @@ import { CookieService } from './cookie.service';
 export interface AuthSession {
   sessionId: string;
   cedula: string;
+  backendId?: string; // ID que devuelve el backend para usar en siguientes llamadas
   email?: string;
   step: 'credentials' | 'otp' | 'biometric' | 'complete';
+  isAdmin?: boolean; // Nuevo campo para identificar sesiones de admin
+  isVoterComplete?: boolean; // Marca específica para votantes completamente autenticados
 }
 
 export interface ValidateCredentialsResponse {
   success: boolean;
   message: string;
+  id?: string | number; // ID que devuelve el backend
   email?: string;
   sessionId?: string;
 }
@@ -66,6 +70,7 @@ export class AuthService {
           const session: AuthSession = {
             sessionId: response.sessionId || this.generateSessionId(),
             cedula,
+            backendId: String(response.id), // Guardar el ID del backend
             email: response.email,
             step: 'otp'
           };
@@ -79,9 +84,16 @@ export class AuthService {
   /**
    * Paso 2: Enviar código OTP al email
    */
-  sendOtp(cedula: string): Observable<any> {
+  sendOtp(): Observable<any> {
+    const currentSession = this.sessionSubject.value;
+    const backendId = currentSession?.backendId;
+    
+    if (!backendId) {
+      return throwError(() => new Error('No hay sesión activa o falta ID del backend'));
+    }
+    
     return this.http.post<any>(`${this.apiUrl}/auth/request-otp`, { 
-      id: cedula 
+      id: backendId 
     }, {
       withCredentials: true
     }).pipe(
@@ -92,9 +104,16 @@ export class AuthService {
   /**
    * Paso 2b: Verificar código OTP
    */
-  verifyOtp(cedula: string, otpCode: string): Observable<ValidateOtpResponse> {
+  verifyOtp(otpCode: string): Observable<ValidateOtpResponse> {
+    const currentSession = this.sessionSubject.value;
+    const backendId = currentSession?.backendId;
+    
+    if (!backendId) {
+      return throwError(() => new Error('No hay sesión activa o falta ID del backend'));
+    }
+    
     return this.http.post<ValidateOtpResponse>(`${this.apiUrl}/auth/otp`, {
-      id: cedula,
+      id: backendId,
       otpCode
     }, {
       withCredentials: true
@@ -115,9 +134,16 @@ export class AuthService {
   /**
    * Paso 3: Validar biometría facial
    */
-  validateBiometric(cedula: string, imagenFacial: string): Observable<ValidateBiometricResponse> {
+  validateBiometric(imagenFacial: string): Observable<ValidateBiometricResponse> {
+    const currentSession = this.sessionSubject.value;
+    const backendId = currentSession?.backendId;
+    
+    if (!backendId) {
+      return throwError(() => new Error('No hay sesión activa o falta ID del backend'));
+    }
+    
     return this.http.post<ValidateBiometricResponse>(`${this.apiUrl}/auth/biometrics`, {
-      id: cedula,
+      id: backendId,
       image: imagenFacial // Renombrado a 'image' según DTO del Gateway
     }, {
       withCredentials: true // Permite recepción de cookies
@@ -126,7 +152,6 @@ export class AuthService {
         if (response.success) {
           // Ya no guardamos token en localStorage para cookies httpOnly
           // El servidor configura automáticamente la cookie segura
-          console.log('✅ Autenticación biométrica exitosa - Cookie configurada por el servidor');
           // Guardar tiempo de expiración en sessionStorage (no sensible)
           if (response.expirationTime) {
             sessionStorage.setItem('votingExpirationTime', response.expirationTime.toString());
@@ -134,7 +159,14 @@ export class AuthService {
           const currentSession = this.sessionSubject.value;
           if (currentSession) {
             currentSession.step = 'complete';
+            currentSession.isVoterComplete = true; // Marcar específicamente como votante
             this.setSession(currentSession);
+            
+            // Marcar el tiempo de autenticación completada
+            sessionStorage.setItem('authCompleteTime', Date.now().toString());
+            
+            // Verificar cookies después del login
+            this.verifyCookieStatus();
           }
         }
       }),
@@ -156,14 +188,27 @@ export class AuthService {
    * Login Administrador
    */
   adminLogin(credentials: any): Observable<any> {
+    
     return this.http.post<any>(`${this.apiUrl}/auth/admin/login`, credentials, {
       withCredentials: true // Importante: permite envío/recepción de cookies
     }).pipe(
       tap(response => {
+        
         // Ya no guardamos token en localStorage
         // Las cookies httpOnly se manejan automáticamente por el navegador
         if (response.success) {
-          console.log('✅ Login administrativo exitoso - Cookie configurada por el servidor');
+          
+          // Establecer estado de admin en la sesión
+          const adminSession: AuthSession = {
+            sessionId: this.generateSessionId(),
+            cedula: '', // Los admin no tienen cédula
+            email: credentials.email, // Guardar el email para referencia
+            step: 'complete',
+            isAdmin: true,
+            isVoterComplete: false // Admin NO es votante
+          };
+          this.setSession(adminSession);
+
         }
       }),
       catchError(this.handleError)
@@ -181,23 +226,79 @@ export class AuthService {
 
   /**
    * Verificar si es admin
-   * Para cookies httpOnly, necesitamos hacer una verificación con el servidor
+   * Verifica tanto el estado local como la validez de la cookie con el servidor
    */
   isAdminLoggedIn(): Observable<boolean> {
-    return this.http.get<{authenticated: boolean}>(`${this.apiUrl}/auth/admin/verify`, {
+    const session = this.sessionSubject.value;
+    const hasLocalAdminSession = session?.isAdmin === true && session?.step === 'complete';
+    
+    if (!hasLocalAdminSession) {
+      return of(false);
+    }
+
+    // Verificar que la cookie sea válida haciendo una petición al servidor
+    return this.http.get(`${this.apiUrl}/election/all`, {
       withCredentials: true
     }).pipe(
-      map(response => response.authenticated),
-      catchError(() => of(false))
+      map(() => {
+        return true;
+      }),
+      catchError((error) => {
+        if (error.status === 401) {
+          // Cookie expirada o inválida, limpiar estado local
+          this.clearAdminSession();
+        }
+        return of(false);
+      })
     );
   }
 
   /**
    * Verificar si completó la autenticación
+   * SOLO para votantes - excluye administradores
    */
   isAuthComplete(): boolean {
     const session = this.sessionSubject.value;
-    return session?.step === 'complete';
+    // Debe tener step complete Y ser específicamente votante (no admin)
+    const isComplete = session?.step === 'complete' && session?.isVoterComplete === true && session?.isAdmin !== true;
+    return isComplete;
+  }
+
+  /**
+   * Verificar si la cookie del votante es válida con el servidor
+   */
+  isVoterCookieValid(): Observable<boolean> {
+    return this.http.get(`${this.apiUrl}/voting/validate-session`, {
+      withCredentials: true
+    }).pipe(
+      map((response: any) => {
+        
+        // Si la cookie es válida pero no tenemos sesión local, crearla
+        const currentSession = this.sessionSubject.value;
+        if (!currentSession || currentSession.step !== 'complete') {
+          const restoredSession: AuthSession = {
+            sessionId: 'restored_' + Date.now(),
+            cedula: response.userId || '', 
+            step: 'complete',
+            isVoterComplete: true,
+            isAdmin: false
+          };
+          this.setSession(restoredSession);
+        }
+        
+        return true;
+      }),
+      catchError((error) => {
+        if (error.status === 401) {
+          // Cookie expirada o inválida, limpiar estado local
+          localStorage.removeItem('authSession');
+          sessionStorage.removeItem('votingExpirationTime');
+          sessionStorage.removeItem('authCompleteTime');
+          this.sessionSubject.next(null);
+        }
+        return of(false);
+      })
+    );
   }
 
   /**
@@ -211,46 +312,54 @@ export class AuthService {
    * Logout de administrador - limpia cookies y estado
    */
   logoutAdmin(): Observable<any> {
+
+    
     return this.http.post(`${this.apiUrl}/auth/admin/logout`, {}, {
       withCredentials: true
     }).pipe(
       tap(() => {
-        // Limpiar estado local
-        this.cookieService.clearAuthCookies();
-        localStorage.removeItem('authSession');
-        this.sessionSubject.next(null);
+        this.clearAdminSession();
       }),
       catchError(error => {
         // Incluso si falla el servidor, limpiamos local
-        this.cookieService.clearAuthCookies();
-        localStorage.removeItem('authSession');
-        this.sessionSubject.next(null);
+        this.clearAdminSession();
         return of({ success: true, message: 'Logout local exitoso' });
       })
     );
   }
 
   /**
-   * Logout de votante - limpia cookies y estado
+   * Limpiar sesión administrativa
+   */
+  private clearAdminSession(): void {
+    this.cookieService.clearAuthCookies();
+    localStorage.removeItem('authSession');
+    this.sessionSubject.next(null);
+  }
+
+  /**
+   * Logout de votante - limpia sesión local E invalida cookie del servidor
    */
   logoutVoter(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/voter/logout`, {}, {
+
+    
+    // Primero limpiar estado local
+    this.cookieService.clearAuthCookies();
+    localStorage.removeItem('authSession');
+    sessionStorage.removeItem('votingExpirationTime');
+    sessionStorage.removeItem('authCompleteTime');
+    this.sessionSubject.next(null);
+    
+    // Luego invalidar cookie del servidor
+    return this.http.post(`${this.apiUrl}/auth/logout`, {}, {
       withCredentials: true
     }).pipe(
       tap(() => {
-        // Limpiar estado local
-        this.cookieService.clearAuthCookies();
-        localStorage.removeItem('authSession');
-        sessionStorage.removeItem('votingExpirationTime');
-        this.sessionSubject.next(null);
+        // Cookie invalidada exitosamente
       }),
       catchError(error => {
-        // Incluso si falla el servidor, limpiamos local
-        this.cookieService.clearAuthCookies();
-        localStorage.removeItem('authSession');
-        sessionStorage.removeItem('votingExpirationTime');
-        this.sessionSubject.next(null);
-        return of({ success: true, message: 'Logout local exitoso' });
+        // Incluso si falla el servidor, la sesión local ya está limpia
+        return of({ success: true, message: 'Logout local completado, error en servidor' });
       })
     );
   }
@@ -273,6 +382,25 @@ export class AuthService {
 
   private generateSessionId(): string {
     return 'sess_' + Math.random().toString(36).substring(2, 15);
+  }
+
+  /**
+   * Verificar el status de las cookies para debugging
+   */
+  private verifyCookieStatus(): void {
+    // Hacer una petición de prueba para verificar que las cookies se envían
+    setTimeout(() => {
+      this.http.get(`${this.apiUrl}/election/candidates`, {
+        withCredentials: true
+      }).subscribe({
+        next: (response) => {
+          // Cookies funcionando correctamente
+        },
+        error: (error) => {
+          // Error en las cookies
+        }
+      });
+    }, 1000);
   }
 
   private handleError(error: HttpErrorResponse) {

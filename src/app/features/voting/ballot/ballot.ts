@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ElectionService, Election } from '../../../core/services/election.service';
-import { VotingService, CastVoteDto } from '../../../core/services/voting.service';
+import { VotingService } from '../../../core/services/voting.service';
+import { AuthService } from '../../../core/services/auth';
 
 interface Candidate {
   id?: string;
@@ -31,13 +32,25 @@ export class BallotComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   errorMessage = '';
 
+  // Modal de confirmación
+  showConfirmModal = false;
+  selectedCandidateId = '';
+  selectedCandidateName = '';
+  isVoteIntentionSent = false;
+
+  // Pantalla de éxito
+  showSuccessScreen = false;
+  successMessage = '';
+  userEmail = '';
+
   private timerInterval: any;
 
   constructor(
     private router: Router,
     private electionService: ElectionService,
     private votingService: VotingService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -128,9 +141,9 @@ export class BallotComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Confirmar y enviar voto al backend
+   * Seleccionar candidato y enviar intención de voto
    */
-  confirmVote(): void {
+  selectVote(): void {
     if (this.selectedCandidate === null || !this.electionId) {
       this.errorMessage = 'Debe seleccionar una opción';
       return;
@@ -138,50 +151,151 @@ export class BallotComponent implements OnInit, OnDestroy {
 
     this.isSubmitting = true;
     this.errorMessage = '';
-    this.votingEndTime = new Date();
-    this.stopTimer();
 
-    // Determinar tipo de voto y candidato
-    let voteType: 'candidate' | 'blank' | 'null' = 'candidate';
-    let candidateId: string | undefined = undefined;
+    // Determinar el candidateId basado en la selección
+    let candidateId: string;
+    let candidateName: string;
 
-    if (this.selectedCandidate === -1) {
-      voteType = 'blank';
-    } else if (this.selectedCandidate === -2) {
-      voteType = 'null';
-    } else if (this.selectedCandidate >= 0 && this.candidates[this.selectedCandidate]) {
-      candidateId = this.candidates[this.selectedCandidate].id;
+    if (this.selectedCandidate >= 0 && this.candidates[this.selectedCandidate]) {
+      candidateId = this.candidates[this.selectedCandidate].id || '';
+      candidateName = this.candidates[this.selectedCandidate].name;
+    } else {
+      this.errorMessage = 'Selección inválida';
+      this.isSubmitting = false;
+      return;
     }
 
-    const votePayload: CastVoteDto = {
-      electionId: this.electionId,
-      candidateId: candidateId,
-      voteType: voteType,
-      tokenVotante: 'cookie-based-auth' // Ya no enviamos token, se usa cookie httpOnly
-    };
-
-    this.votingService.castVote(votePayload).subscribe({
+    // Llamar al servicio para enviar intención de voto (cast)
+    this.votingService.castVote(candidateId).subscribe({
       next: (response) => {
         this.isSubmitting = false;
+        if (response.status === 'WAITING_FOR_USER_CONFIRMATION') {
+          this.selectedCandidateId = candidateId;
+          this.selectedCandidateName = candidateName;
+          this.isVoteIntentionSent = true;
+          
+          // Mostrar modal de confirmación
+          this.showConfirmModal = true;
+          this.stopTimer(); // Detener timer mientras confirma
+        } else {
+          this.errorMessage = response.message || 'Error al registrar la selección';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        console.error('Error al enviar selección:', err);
+        
+        // Diagnóstico específico para errores de autenticación
+        if (err.status === 401) {
+          console.error('🚨 [DEBUG] Error 401 - Problema de autenticación detectado');
+          console.error('🔍 [DEBUG] Verificando estado de autenticación local...');
+          
+          const authComplete = this.authService.isAuthComplete();
+          console.error('🔍 [DEBUG] AuthService.isAuthComplete():', authComplete);
+          
+          // Verificar sesión actual
+          const currentSession = this.authService['sessionSubject'].value;
+          console.error('🔍 [DEBUG] Sesión actual:', {
+            step: currentSession?.step,
+            isVoterComplete: currentSession?.isVoterComplete,
+            isAdmin: currentSession?.isAdmin,
+            cedula: currentSession?.cedula ? '***' : 'sin cédula',
+            backendId: currentSession?.backendId ? 'presente' : 'ausente'
+          });
+          
+          console.error('🔍 [DEBUG] Cookies del documento:', document.cookie);
+          
+          this.errorMessage = 'Sesión expirada o inválida. Por favor, inicie sesión nuevamente.';
+          
+          // Limpiar sesión y redirigir
+          setTimeout(() => {
+            this.authService.logoutVoter().subscribe(() => {
+              this.router.navigate(['/voter-login']);
+            });
+          }, 2000);
+        } else {
+          this.errorMessage = err.error?.message || err.message || 'Error al registrar la selección. Intente nuevamente.';
+        }
+        
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * Confirmar definitivamente el voto
+   */
+  confirmVote(): void {
+    if (!this.isVoteIntentionSent || !this.selectedCandidateId) {
+      this.errorMessage = 'Error: No se ha enviado la intención de voto';
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+
+    this.votingService.confirmVote(this.selectedCandidateId).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
+        
         if (response.success) {
           // Limpiar datos de sesión
           sessionStorage.removeItem('votingExpirationTime');
-
-          // Mostrar mensaje de éxito y redirigir
-          alert('¡Voto registrado exitosamente! Recibirás un certificado de votación en tu correo.');
-          this.router.navigate(['/results']);
+          
+          // LIMPIAR COMPLETAMENTE EL ESTADO DEL MODAL
+          this.showConfirmModal = false;
+          this.isVoteIntentionSent = false;
+          this.selectedCandidateId = '';
+          this.selectedCandidateName = '';
+          this.errorMessage = '';
+          
+          // Detener el timer si está corriendo
+          this.stopTimer();
+          
+          // Configurar pantalla de éxito
+          this.successMessage = response.message || '¡Voto registrado exitosamente!';
+          this.userEmail = this.getCurrentUserEmail();
+          
+          // MOSTRAR PANTALLA DE ÉXITO
+          this.showSuccessScreen = true;
+          
+          // Forzar detección de cambios MÚLTIPLES VECES
+          this.cdr.detectChanges();
+          
+          // Un segundo detectChanges para asegurar
+          setTimeout(() => {
+            this.cdr.detectChanges();
+          }, 0);
+          
+          // Limpiar sesión automáticamente (logout) después de un breve delay
+          setTimeout(() => {
+            this.performLogout();
+          }, 1000);
+          
         } else {
-          this.errorMessage = response.message || 'Error al registrar el voto';
+          this.errorMessage = response.message || 'Error al confirmar el voto';
           this.cdr.detectChanges();
         }
       },
       error: (err) => {
         this.isSubmitting = false;
-        console.error('Error al enviar voto:', err);
-        this.errorMessage = err.error?.message || err.message || 'Error al registrar el voto. Intente nuevamente.';
+        console.error('Error al confirmar voto:', err);
+        this.errorMessage = err.error?.message || err.message || 'Error al confirmar el voto. Intente nuevamente.';
         this.cdr.detectChanges();
       }
     });
+  }
+
+  /**
+   * Cancelar la confirmación y volver a la selección
+   */
+  cancelConfirmation(): void {
+    this.showConfirmModal = false;
+    this.isVoteIntentionSent = false;
+    this.selectedCandidateId = '';
+    this.selectedCandidateName = '';
+    this.startTimer(); // Reanudar timer
   }
 
   /**
@@ -190,10 +304,62 @@ export class BallotComponent implements OnInit, OnDestroy {
   autoSubmitVote(): void {
     this.votingEndTime = new Date();
     if (this.selectedCandidate === null) {
-      this.selectedCandidate = -1; // Voto en blanco si no seleccionó
+      // Si no seleccionó nada, buscar el candidato "Blanco" en la lista de candidatos
+      const blancoIndex = this.candidates.findIndex(c => 
+        c.name.toLowerCase().includes('blanco') || 
+        c.party.toLowerCase().includes('n/a') ||
+        c.party.toLowerCase().includes('na')
+      );
+      this.selectedCandidate = blancoIndex >= 0 ? blancoIndex : 0; // Si no encuentra "Blanco", usa el primer candidato
     }
 
-    // Llamar confirmVote para enviar el voto
-    this.confirmVote();
+    // Llamar selectVote para enviar la intención
+    this.selectVote();
+  }
+
+  /**
+   * Obtener email del usuario actual (desde la sesión si está disponible)
+   */
+  private getCurrentUserEmail(): string {
+    // Intentar obtener el email desde localStorage o sessionStorage
+    const authSession = localStorage.getItem('authSession');
+    if (authSession) {
+      try {
+        const session = JSON.parse(authSession);
+        return session.email || 'tu correo electrónico';
+      } catch (e) {
+        console.warn('Error parsing auth session:', e);
+      }
+    }
+    return 'tu correo electrónico';
+  }
+
+  /**
+   * Realizar logout automático después de votar
+   */
+  private performLogout(): void {
+    // Usar el método oficial del AuthService que limpia todo correctamente
+    this.authService.logoutVoter().subscribe({
+      next: (response) => {
+      },
+      error: (error) => {
+        // Incluso si hay error, el AuthService ya limpió el estado local
+      }
+    });
+  }
+
+  /**
+   * Navegar al inicio
+   */
+  goToHome(): void {
+
+    this.router.navigate(['/']);
+  }
+
+  /**
+   * Navegar a resultados
+   */
+  goToResults(): void {
+    this.router.navigate(['/results']);
   }
 }

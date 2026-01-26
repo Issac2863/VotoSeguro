@@ -21,8 +21,32 @@
                 <span class="step-label">{{ stepLabels[currentStep - 1] }}</span>
             </div>
 
-            <!-- Mensajes de error y éxito -->
-            <div class="alert alert-error" *ngIf="errorMessage">
+            <!-- Mensajes específicos de estado de votación -->
+            <div *ngIf="showVotingStatusMessage && votingStatus" 
+                 [class]="'voting-status-message ' + (votingStatus === 'active' ? 'voting-active' : votingStatus === 'processing' ? 'vote-processing' : 'already-voted')">
+                
+                <div *ngIf="votingStatus === 'active'" class="status-content">
+                    <h4>� Sesión de Votación Activa</h4>
+                    <p>{{ errorMessage }}</p>
+                    <p class="status-hint">{{ successMessage }}</p>
+                    <small class="status-note">Las sesiones expiran automáticamente después de 15 minutos de inactividad.</small>
+                </div>
+
+                <div *ngIf="votingStatus === 'processing'" class="status-content">
+                    <h4>⏳ Voto en Proceso</h4>
+                    <p>{{ errorMessage }}</p>
+                    <p class="status-hint">{{ successMessage }}</p>
+                </div>
+
+                <div *ngIf="votingStatus === 'completed'" class="status-content">
+                    <h4>✅ Voto Registrado</h4>
+                    <p>{{ errorMessage }}</p>
+                    <p class="status-hint">{{ successMessage }}</p>
+                </div>
+            </div>
+
+            <!-- Mensajes de error y éxito generales -->
+            <div class="alert alert-error" *ngIf="errorMessage && !showVotingStatusMessage">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -30,7 +54,7 @@
                 {{ errorMessage }}
             </div>
 
-            <div class="alert alert-success" *ngIf="successMessage">
+            <div class="alert alert-success" *ngIf="successMessage && !showVotingStatusMessage">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -1,4 +1,4 @@
-<div class="admin-dashboard">
+﻿<div class="admin-dashboard">
     <!-- Header -->
     <header class="dashboard-header">
         <div class="header-left">
@@ -13,7 +13,7 @@
             <div class="admin-avatar">AP</div>
             <div class="admin-info">
                 <span class="admin-name">Administrador Principal</span>
-                <span class="admin-status">En línea</span>
+                <span class="admin-status">En lÃ­nea</span>
             </div>
         </div>
 
@@ -30,7 +30,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Cerrar Sesión
+                Cerrar SesiÃ³n
             </button>
         </div>
     </header>
@@ -65,14 +65,14 @@
 
             <div class="stat-card">
                 <div class="stat-header">
-                    <span class="stat-title">PARTICIPACIÓN</span>
+                    <span class="stat-title">PARTICIPACIÃ“N</span>
                     <svg class="stat-icon warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                 </div>
                 <div class="stat-value">{{ participation }}%</div>
-                <div class="stat-label">Del padrón electoral</div>
+                <div class="stat-label">Del padrÃ³n electoral</div>
             </div>
         </div>
 
@@ -80,49 +80,81 @@
         <div class="elections-section">
             <div class="section-header">
                 <div>
-                    <h2 class="section-title">Gestión de Elecciones</h2>
+                    <h2 class="section-title">GestiÃ³n de Elecciones</h2>
                     <p class="section-subtitle">Total: {{ elections.length }} elecciones registradas</p>
                 </div>
                 <button class="btn btn-primary" routerLink="/admin/create-election">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Crear Nueva Votación
+                    Crear Nueva VotaciÃ³n
                 </button>
             </div>
 
             <!-- Elections Table -->
             <div class="elections-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>NOMBRE</th>
-                            <th>FECHA INICIO</th>
-                            <th>FECHA FIN</th>
-                            <th>ESTADO</th>
-                            <th>ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let election of elections" (click)="viewElection(election)">
-                            <td class="election-name">{{ election.name }}</td>
-                            <td>{{ election.startDate | date:'dd/MM/yyyy' }}</td>
-                            <td>{{ election.endDate | date:'dd/MM/yyyy' }}</td>
-                            <td>
-                                <span class="status-badge" [class]="election.status">
-                                    {{ election.status === 'active' ? 'Activa' : election.status === 'finished' ?
-                                    'Finalizada' : 'Pendiente' }}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline"
-                                    (click)="viewElection(election); $event.stopPropagation()">
-                                    Ver Detalles
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div *ngIf="elections.length === 0" class="empty-state">
+                    <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <h3>No hay elecciones registradas</h3>
+                    <p>Crear tu primera elecciÃ³n para comenzar</p>
+                    <button class="btn btn-primary" routerLink="/admin/create-election">Crear ElecciÃ³n</button>
+                </div>
+                
+                <div *ngIf="elections.length > 0" class="table-container">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th class="th-name">NOMBRE DE LA ELECCIÃ“N</th>
+                                <th class="th-date">FECHA</th>
+                                <th class="th-description">DESCRIPCIÃ“N</th>
+                                <th class="th-status">ESTADO</th>
+                                <th class="th-actions">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let election of elections; trackBy: trackElection" class="table-row" [class]="'row-' + election.status">
+                                <td class="td-name">
+                                    <div class="election-info">
+                                        <h4 class="election-title">{{ election.name }}</h4>
+                                        <span class="election-id">{{ election.id }}</span>
+                                    </div>
+                                </td>
+                                <td class="td-date">
+                                    <div class="date-info">
+                                        <span class="date-main">{{ election.startDate | date:'dd/MM/yyyy' }}</span>
+                                        <span class="date-time">{{ election.startTime }} - {{ election.endTime }}</span>
+                                    </div>
+                                </td>
+                                <td class="td-description">
+                                    <span class="description-text">{{ election.description || 'Sin descripciÃ³n' }}</span>
+                                </td>
+                                <td class="td-status">
+                                    <span class="status-badge" [ngClass]="'status-' + election.status">
+                                        <svg class="status-icon" fill="currentColor" viewBox="0 0 8 8">
+                                            <circle cx="4" cy="4" r="3"></circle>
+                                        </svg>
+                                        {{ getStatusText(election.status) }}
+                                    </span>
+                                </td>
+                                <td class="td-actions">
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-primary" 
+                                                (click)="viewCandidates(election)"
+                                                title="Ver candidatos de la elección">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 515.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 919.288 0M15 7a3 3 0 11-6 0 3 3 0 616 0z"></path>
+                                            </svg>
+                                            <span>Candidatos</span>
+                                        </button>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -136,26 +168,26 @@
             </div>
 
             <form [formGroup]="electionForm" (ngSubmit)="createElection()" class="create-election-form">
-                <!-- Información básica -->
+                <!-- InformaciÃ³n bÃ¡sica -->
                 <div class="form-section">
-                    <h3 class="form-section-title">Información de la Elección</h3>
+                    <h3 class="form-section-title">InformaciÃ³n de la ElecciÃ³n</h3>
 
                     <div class="form-group">
-                        <label class="form-label">Nombre de la Elección *</label>
+                        <label class="form-label">Nombre de la ElecciÃ³n *</label>
                         <input type="text" class="form-input" formControlName="name"
-                            placeholder="Ej: Elección Presidencial 2026">
+                            placeholder="Ej: ElecciÃ³n Presidencial 2026">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Descripción</label>
+                        <label class="form-label">DescripciÃ³n</label>
                         <textarea class="form-input" formControlName="description" rows="2"
-                            placeholder="Descripción breve de la votación"></textarea>
+                            placeholder="DescripciÃ³n breve de la votaciÃ³n"></textarea>
                     </div>
                 </div>
 
                 <!-- Fecha y hora -->
                 <div class="form-section">
-                    <h3 class="form-section-title">Programación</h3>
+                    <h3 class="form-section-title">ProgramaciÃ³n</h3>
 
                     <div class="form-row">
                         <div class="form-group">
@@ -183,7 +215,7 @@
                 <!-- Candidatos -->
                 <div class="form-section">
                     <h3 class="form-section-title">Candidatos / Opciones</h3>
-                    <p class="form-hint">Los votos "Blanco" y "Nulo" se agregan automáticamente</p>
+                    <p class="form-hint">Los votos "Blanco" y "Nulo" se agregan automÃ¡ticamente</p>
 
                     <div class="candidates-list">
                         <div class="candidate-input-row" *ngFor="let candidate of candidatesList; let i = index">
@@ -236,7 +268,7 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        Crear Votación
+                        Crear VotaciÃ³n
                     </button>
                 </div>
             </form>
@@ -258,7 +290,7 @@
                         <span class="detail-value">{{ selectedElection.totalVotes }}</span>
                     </div>
                     <div class="detail-stat">
-                        <span class="detail-label">Participación</span>
+                        <span class="detail-label">ParticipaciÃ³n</span>
                         <span class="detail-value">{{ selectedElection.participation }}%</span>
                     </div>
                     <div class="detail-stat">
@@ -270,7 +302,7 @@
                     </div>
                 </div>
 
-                <h3>Distribución de Votos</h3>
+                <h3>DistribuciÃ³n de Votos</h3>
                 <div class="results-list">
                     <div class="result-item" *ngFor="let option of selectedElection.options">
                         <div class="result-info">
@@ -286,6 +318,89 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidates Modal -->
+    <div class="modal-overlay" *ngIf="showCandidatesModal" (click)="closeCandidatesModal()">
+        <div class="modal-content large" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Candidatos - {{ selectedElectionForCandidates?.name }}</h2>
+                <button class="modal-close" (click)="closeCandidatesModal()">&times;</button>
+            </div>
+
+            <div class="candidates-content">
+                <div class="election-info-header">
+                    <div class="election-detail">
+                        <span class="detail-label">Fecha de elecciÃ³n:</span>
+                        <span class="detail-value">{{ selectedElectionForCandidates?.startDate | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <div class="election-detail">
+                        <span class="detail-label">Estado:</span>
+                        <span class="status-badge" [ngClass]="'status-' + selectedElectionForCandidates?.status">
+                            <svg class="status-icon" fill="currentColor" viewBox="0 0 8 8">
+                                <circle cx="4" cy="4" r="3"></circle>
+                            </svg>
+                            {{ getStatusText(selectedElectionForCandidates?.status || 'pending') }}
+                        </span>
+                    </div>
+                    <div class="election-detail">
+                        <span class="detail-label">Total de candidatos:</span>
+                        <span class="detail-value">{{ selectedElectionForCandidates?.candidatos?.length || 0 }}</span>
+                    </div>
+                </div>
+
+                <div class="candidates-table">
+                    <div *ngIf="!selectedElectionForCandidates?.candidatos || selectedElectionForCandidates?.candidatos?.length === 0" class="empty-state">
+                        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                        <h3>No hay candidatos registrados</h3>
+                        <p>Esta elecciÃ³n aÃºn no tiene candidatos asignados</p>
+                    </div>
+
+                    <div *ngIf="selectedElectionForCandidates?.candidatos && (selectedElectionForCandidates?.candidatos?.length || 0) > 0" class="table-container">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th class="th-number">#</th>
+                                    <th class="th-name">NOMBRE DEL CANDIDATO</th>
+                                    <th class="th-party">PARTIDO/MOVIMIENTO</th>
+                                    <th class="th-type">TIPO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let candidate of selectedElectionForCandidates?.candidatos; let i = index" class="table-row">
+                                    <td class="td-number">
+                                        <div class="candidate-number">{{ i + 1 }}</div>
+                                    </td>
+                                    <td class="td-name">
+                                        <div class="candidate-info">
+                                            <h4 class="candidate-name">{{ candidate.name }}</h4>
+                                        </div>
+                                    </td>
+                                    <td class="td-party">
+                                        <span class="party-name">{{ candidate.political_group }}</span>
+                                    </td>
+                                    <td class="td-type">
+                                        <span class="candidate-type" 
+                                              [ngClass]="{
+                                                'type-special': candidate.name === 'Blanco' || candidate.name === 'Nulo',
+                                                'type-regular': candidate.name !== 'Blanco' && candidate.name !== 'Nulo'
+                                              }">
+                                            {{ (candidate.name === 'Blanco' || candidate.name === 'Nulo') ? 'Especial' : 'Candidato' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" (click)="closeCandidatesModal()">Cerrar</button>
             </div>
         </div>
     </div>
