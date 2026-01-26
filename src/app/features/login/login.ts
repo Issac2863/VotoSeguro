@@ -130,7 +130,6 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.validateCredentials(documentNumber, fingerprintCode).subscribe({
       next: (response) => {
-        console.log('[LOGIN] validateCredentials response:', response);
         this.isLoading = false;
         if (response.success) {
           this.successMessage = response.message;
